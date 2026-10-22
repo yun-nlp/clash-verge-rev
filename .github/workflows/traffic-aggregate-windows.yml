@@ -70,20 +70,45 @@ jobs:
       - name: Tauri build (portable, no installer)
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-        run: pnpm tauri build --target x86_64-pc-windows-msvc -b none
+        run: pnpm tauri build --target x86_64-pc-windows-msvc --no-bundle
 
       - name: Make portable zip
         shell: pwsh
         run: |
-          $releaseDir = "src-tauri/target/x86_64-pc-windows-msvc/release"
+          $ErrorActionPreference = "Stop"
+          $triple = "x86_64-pc-windows-msvc"
+          $releaseDir = "src-tauri/target/$triple/release"
+          $sidecarDir = "src-tauri/sidecar"
+          $resourcesSrc = "src-tauri/resources"
           $out = "MailMate-portable-windows-x64"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
-          Copy-Item "$releaseDir/MailMate.exe" "$out/" -Force
-          Copy-Item "$releaseDir/verge-mihomo.exe" "$out/" -Force -ErrorAction SilentlyContinue
-          Copy-Item "$releaseDir/verge-mihomo-alpha.exe" "$out/" -Force -ErrorAction SilentlyContinue
-          if (Test-Path "$releaseDir/resources") { Copy-Item "$releaseDir/resources" "$out/resources" -Recurse -Force }
+
+          # Main executable: cargo bin name is "clash-verge" (--no-bundle does not
+          # apply tauri.conf mainBinaryName). Rename to the white-label name. The
+          # sidecar is resolved at runtime as "<exe dir>/verge-mihomo.exe", which
+          # is independent of the main exe file name, so renaming is safe.
+          Copy-Item "$releaseDir/clash-verge.exe" "$out/MailMate.exe" -Force
+
+          # Core sidecar: prebuild places it under src-tauri/sidecar with a target
+          # triple suffix; the app looks for it without the suffix, next to the exe.
+          Copy-Item "$sidecarDir/verge-mihomo-$triple.exe" "$out/verge-mihomo.exe" -Force
+          if (Test-Path "$sidecarDir/verge-mihomo-alpha-$triple.exe") {
+            Copy-Item "$sidecarDir/verge-mihomo-alpha-$triple.exe" "$out/verge-mihomo-alpha.exe" -Force
+          }
+
+          # Resources (mmdb / geoip / geosite / service / plugin / dns scripts),
+          # resolved at runtime as "<exe dir>/resources".
+          if (-not (Test-Path $resourcesSrc)) { throw "resources dir missing: $resourcesSrc" }
+          Copy-Item $resourcesSrc "$out/resources" -Recurse -Force
+
+          # Portable flag: presence of .config/PORTABLE switches the app to store
+          # all data next to the exe instead of %APPDATA%.
           New-Item -ItemType Directory -Force -Path "$out/.config" | Out-Null
           New-Item -ItemType File -Force -Path "$out/.config/PORTABLE" | Out-Null
+
+          Write-Host "=== Portable package contents ==="
+          Get-ChildItem -Recurse $out | Select-Object FullName, Length | Format-Table -AutoSize
+
           Compress-Archive -Path "$out/*" -DestinationPath "MailMate-portable-windows-x64.zip" -Force
           Get-ChildItem "MailMate-portable-windows-x64.zip"
 
