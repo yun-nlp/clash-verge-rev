@@ -83,18 +83,41 @@ jobs:
           $out = "MailMate-portable-windows-x64"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
 
-          # Main executable: cargo bin name is "clash-verge" (--no-bundle does not
-          # apply tauri.conf mainBinaryName). Rename to the white-label name. The
-          # sidecar is resolved at runtime as "<exe dir>/verge-mihomo.exe", which
-          # is independent of the main exe file name, so renaming is safe.
-          Copy-Item "$releaseDir/clash-verge.exe" "$out/MailMate.exe" -Force
+          Write-Host "=== release dir listing ==="
+          Get-ChildItem $releaseDir | Select-Object Name, Length | Format-Table -AutoSize
+          Write-Host "=== sidecar dir listing ==="
+          Get-ChildItem $sidecarDir | Select-Object Name, Length | Format-Table -AutoSize
+
+          # Main executable: depending on the Tauri CLI, --no-bundle may leave the
+          # cargo bin name (clash-verge.exe) or apply mainBinaryName (MailMate.exe).
+          # Detect whichever exists and normalize to MailMate.exe.
+          $mainExe = $null
+          foreach ($cand in @("MailMate.exe", "clash-verge.exe")) {
+            if (Test-Path "$releaseDir/$cand") { $mainExe = "$releaseDir/$cand"; break }
+          }
+          if (-not $mainExe) {
+            $mainExe = (Get-ChildItem "$releaseDir/*.exe" |
+              Where-Object { $_.Name -notlike "verge-mihomo*" } |
+              Sort-Object Length -Descending | Select-Object -First 1).FullName
+          }
+          if (-not $mainExe) { throw "main executable not found in $releaseDir" }
+          Write-Host "Main exe: $mainExe"
+          Copy-Item $mainExe "$out/MailMate.exe" -Force
 
           # Core sidecar: prebuild places it under src-tauri/sidecar with a target
           # triple suffix; the app looks for it without the suffix, next to the exe.
-          Copy-Item "$sidecarDir/verge-mihomo-$triple.exe" "$out/verge-mihomo.exe" -Force
-          if (Test-Path "$sidecarDir/verge-mihomo-alpha-$triple.exe") {
-            Copy-Item "$sidecarDir/verge-mihomo-alpha-$triple.exe" "$out/verge-mihomo-alpha.exe" -Force
+          $core = Get-ChildItem "$sidecarDir/verge-mihomo-$triple*.exe" -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -notlike "*alpha*" } | Select-Object -First 1
+          if (-not $core) {
+            $core = Get-ChildItem "$sidecarDir/verge-mihomo*.exe" -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -notlike "*alpha*" } | Select-Object -First 1
           }
+          if (-not $core) { throw "core sidecar (verge-mihomo) not found in $sidecarDir" }
+          Write-Host "Core sidecar: $($core.FullName)"
+          Copy-Item $core.FullName "$out/verge-mihomo.exe" -Force
+
+          $coreAlpha = Get-ChildItem "$sidecarDir/verge-mihomo-alpha-$triple*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($coreAlpha) { Copy-Item $coreAlpha.FullName "$out/verge-mihomo-alpha.exe" -Force }
 
           # Resources (mmdb / geoip / geosite / service / plugin / dns scripts),
           # resolved at runtime as "<exe dir>/resources".
