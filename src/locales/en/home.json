@@ -8,18 +8,18 @@
     "cards": {
       "trafficStats": "Traffic Stats",
       "networkSettings": "Network Settings",
-      "proxyMode": "Proxy Mode"
+      "proxyMode": "Account Mode"
     },
     "settings": {
       "cards": {
         "profile": "Profile Card",
-        "currentProxy": "Current Proxy Card",
+        "currentProxy": "Current Account Card",
         "network": "Network Settings Card",
-        "proxyMode": "Proxy Mode Card",
+        "proxyMode": "Account Mode Card",
         "traffic": "Traffic Stats Card",
         "tests": "Website Tests Card",
         "ip": "IP Information Card",
-        "clashInfo": "Clash Info Cards",
+        "clashInfo": "Engine Info Cards",
         "systemInfo": "System Info Cards"
       },
       "title": "Home Settings"
@@ -29,22 +29,22 @@
   "components": {
     "proxyTun": {
       "status": {
-        "systemProxyEnabled": "System Proxy Enabled",
-        "systemProxyDisabled": "System Proxy Disabled",
+        "systemProxyEnabled": "System Mail Channel Enabled",
+        "systemProxyDisabled": "System Mail Channel Disabled",
         "tunModeServiceRequired": "TUN Mode Service Required",
         "tunModeEnabled": "TUN Mode Enabled",
         "tunModeDisabled": "TUN Mode Disabled"
       },
       "tooltips": {
-        "systemProxy": "System Proxy Info",
+        "systemProxy": "System Mail Channel Info",
         "tunMode": "TUN Mode Intercept Info"
       }
     },
     "clashInfo": {
-      "title": "Clash Info",
+      "title": "Engine Info",
       "fields": {
         "coreVersion": "Core Version",
-        "systemProxyAddress": "System Proxy Address",
+        "systemProxyAddress": "System Mail Channel Address",
         "mixedPort": "Mixed Port",
         "uptime": "Uptime",
         "rulesCount": "Rules Count"
@@ -57,7 +57,7 @@
         "autoLaunch": "Auto Launch",
         "runningMode": "Running Mode",
         "lastCheckUpdate": "Last Check Update",
-        "vergeVersion": "Verge Version"
+        "vergeVersion": "MailMate Version"
       },
       "actions": {
         "settings": "Settings"
@@ -86,7 +86,7 @@
       }
     },
     "currentProxy": {
-      "title": "Current Node",
+      "title": "Current Account",
       "actions": {
         "refreshDelay": "Delay check"
       },
@@ -94,8 +94,8 @@
         "globalMode": "Global Mode",
         "directMode": "Direct Mode",
         "group": "Group",
-        "proxy": "Proxy",
-        "noActiveNode": "No active proxy node"
+        "proxy": "Account",
+        "noActiveNode": "No active account account"
       }
     },
     "tests": {
@@ -126,9 +126,9 @@
         "direct": "Direct"
       },
       "descriptions": {
-        "rule": "Automatically choose proxies according to the rule set.",
-        "global": "Forward all network requests through the selected proxy.",
-        "direct": "Bypass the proxy and connect to the internet directly."
+        "rule": "Automatically choose accounts according to the rule set.",
+        "global": "Forward all network requests through the selected account.",
+        "direct": "Bypass the account and connect to the internet directly."
       }
     }
   }

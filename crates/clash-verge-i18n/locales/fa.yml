@@ -8,8 +8,8 @@ notifications:
     body: به {mode} تغییر کرد.
   systemProxyToggled:
     title: پروکسی سیستم
-    'on': System proxy has been enabled.
-    'off': System proxy has been disabled.
+    'on': System account has been enabled.
+    'off': System account has been disabled.
   tunModeToggled:
     title: حالت TUN
     'on': TUN mode has been enabled.
@@ -22,19 +22,19 @@ notifications:
     body: پروفایل دوباره فعال شد.
   appQuit:
     title: در آستانه خروج
-    body: Clash Verge در آستانه خروج است.
+    body: MailMate در آستانه خروج است.
   appHidden:
     title: برنامه پنهان شد
-    body: Clash Verge در پس‌زمینه در حال اجراست.
+    body: MailMate در پس‌زمینه در حال اجراست.
   updateReady:
-    title: Clash Verge Update
+    title: MailMate Update
     body: A new version (v{version}) has been downloaded and is ready to install.
     installNow: Install Now
     later: Later
 service:
-  adminInstallPrompt: نصب سرویس Clash Verge به دسترسی مدیر نیاز دارد.
-  adminUninstallPrompt: حذف سرویس Clash Verge به دسترسی مدیر نیاز دارد.
-  translocatedCorePath: Clash Verge is running from a temporary (App Translocation) path and can't locate the core. Please move Clash Verge into the Applications folder and reopen it.
+  adminInstallPrompt: نصب سرویس MailMate به دسترسی مدیر نیاز دارد.
+  adminUninstallPrompt: حذف سرویس MailMate به دسترسی مدیر نیاز دارد.
+  translocatedCorePath: MailMate is running from a temporary (App Translocation) path and can't locate the core. Please move MailMate into the Applications folder and reopen it.
 tray:
   dashboard: داشبورد
   ruleMode: حالت قوانین
@@ -57,9 +57,9 @@ tray:
   openDir: باز کردن پوشه
   appLog: گزارش برنامه
   coreLog: گزارش هسته
-  restartClash: راه‌اندازی مجدد هسته Clash
+  restartClash: راه‌اندازی مجدد هسته MailMate
   restartApp: راه‌اندازی مجدد برنامه
-  vergeVersion: نسخه Verge
+  vergeVersion: نسخه MailMate
   more: بیشتر
   exit: خروج
   tooltip:

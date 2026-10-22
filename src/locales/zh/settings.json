@@ -12,7 +12,7 @@
       "title": "系统设置",
       "toggles": {
         "tunMode": "虚拟网卡模式",
-        "systemProxy": "系统代理"
+        "systemProxy": "系统邮件通道"
       },
       "tooltips": {
         "silentStart": "程序启动时以后台模式运行，不显示程序面板"
@@ -30,8 +30,8 @@
     },
     "proxyControl": {
       "tooltips": {
-        "systemProxy": "修改操作系统的代理设置，如果开启失败，可手动修改操作系统的代理设置",
-        "tunMode": "TUN（虚拟网卡）模式接管系统所有流量，启用时无须打开系统代理",
+        "systemProxy": "修改操作系统的通道设置，如果开启失败，可手动修改操作系统的通道设置",
+        "tunMode": "TUN（虚拟网卡）模式接管系统所有流量，启用时无须打开系统邮件通道",
         "tunUnavailable": "TUN 模式需要安装服务模式或管理员模式"
       },
       "actions": {
@@ -39,7 +39,7 @@
         "uninstallService": "卸载服务"
       },
       "fields": {
-        "systemProxy": "系统代理",
+        "systemProxy": "系统邮件通道",
         "tunMode": "虚拟网卡模式"
       }
     },
@@ -90,7 +90,7 @@
       "system": "系统"
     },
     "clash": {
-      "title": "Clash 设置",
+      "title": "引擎设置",
       "form": {
         "fields": {
           "allowLan": "局域网连接",
@@ -101,7 +101,7 @@
           "portConfig": "端口设置",
           "external": "外部控制",
           "webUI": "网页界面",
-          "clashCore": "Clash 内核",
+          "clashCore": "邮件引擎",
           "openUwpTool": "UWP 工具",
           "updateGeoData": "更新 GeoData",
           "tunnels": {
@@ -110,8 +110,8 @@
             "localPort": "本地监听端口",
             "targetAddr": "目标地址",
             "targetPort": "目标端口",
-            "proxyGroup": "代理组",
-            "proxyNode": "代理节点",
+            "proxyGroup": "账号分组",
+            "proxyNode": "邮件账号",
             "protocols": "协议",
             "existing": "已配置的隧道",
             "default": "跟随当前配置",
@@ -131,7 +131,7 @@
         },
         "tooltips": {
           "networkInterface": "网络接口",
-          "unifiedDelay": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型节点的延迟差异",
+          "unifiedDelay": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型账号的延迟差异",
           "logLevel": "仅对日志目录 Service 文件夹下的内核日志文件生效",
           "openUwpTool": "Windows 8 开始限制 UWP 应用（如微软商店）直接访问本地主机的网络服务，使用此工具可绕过该限制"
         },
@@ -150,7 +150,7 @@
   "components": {
     "verge": {
       "basic": {
-        "title": "Verge 基础设置",
+        "title": "基础设置",
         "actions": {
           "browse": "浏览"
         },
@@ -173,18 +173,18 @@
         }
       },
       "advanced": {
-        "title": "Verge 高级设置",
+        "title": "高级设置",
         "tooltips": {
           "backupInfo": "支持本地或 WebDAV 方式备份配置文件",
           "openConfDir": "如果软件运行异常，!备份!并删除此文件夹下的所有文件，重启软件",
           "liteMode": "关闭 GUI 界面，仅保留内核运行"
         },
         "actions": {
-          "copyVersion": "复制 Verge 版本号"
+          "copyVersion": "复制 版本号"
         },
         "notifications": {
           "latestVersion": "当前已是最新版本",
-          "versionCopied": "Verge 版本已复制到剪贴板"
+          "versionCopied": "版本已复制到剪贴板"
         },
         "fields": {
           "backupSetting": "备份设置",
@@ -197,7 +197,7 @@
           "liteModeSettings": "轻量模式设置",
           "exit": "退出",
           "exportDiagnostics": "导出诊断信息",
-          "vergeVersion": "Verge 版本"
+          "vergeVersion": "版本"
         }
       },
       "theme": {
@@ -227,24 +227,24 @@
           "preferSystemTitlebar": "优先使用系统标题栏",
           "trafficGraph": "流量图显",
           "memoryUsage": "内核占用",
-          "proxyGroupIcon": "代理组图标",
+          "proxyGroupIcon": "账号分组图标",
           "toastPosition": "通知位置",
           "hoverNavigator": "悬浮跳转导航",
           "hoverNavigatorDelay": "悬浮跳转导航延迟",
           "navIcon": "导航栏图标",
           "collapseNavBar": "收起导航栏",
           "trayIcon": "托盘图标",
-          "proxyGroupsDisplayMode": "托盘代理组显示模式",
+          "proxyGroupsDisplayMode": "托盘账号分组显示模式",
           "showOutboundModesInline": "将出站模式显示在托盘一级菜单",
           "commonTrayIcon": "常规托盘图标",
-          "systemProxyTrayIcon": "系统代理托盘图标",
+          "systemProxyTrayIcon": "系统邮件通道托盘图标",
           "tunTrayIcon": "TUN 模式托盘图标",
           "enableTrayIcon": "启用托盘图标",
           "enableTraySpeed": "启用托盘速率",
           "pauseRenderTrafficStatsOnBlur": "失去焦点时暂停渲染流量统计"
         },
         "tooltips": {
-          "hoverNavigator": "鼠标悬停在字母上时自动滚动到对应代理组",
+          "hoverNavigator": "鼠标悬停在字母上时自动滚动到对应账号分组",
           "hoverNavigatorDelay": "鼠标悬停后触发自动跳转前等待的毫秒数"
         },
         "options": {
@@ -272,11 +272,11 @@
     "clashPort": {
       "title": "端口设置",
       "fields": {
-        "mixed": "混合代理端口",
-        "socks": "SOCKS 代理端口",
-        "http": "HTTP(S) 代理端口",
-        "redir": "Redir 透明代理端口",
-        "tproxy": "Tproxy 透明代理端口"
+        "mixed": "混合账号端口",
+        "socks": "SOCKS 账号端口",
+        "http": "HTTP(S) 账号端口",
+        "redir": "Redir 透明账号端口",
+        "tproxy": "Tproxy 透明账号端口"
       },
       "actions": {
         "random": "随机端口"
@@ -399,7 +399,7 @@
         "autoCloseConnections": "自动关闭连接",
         "autoCheckUpdate": "自动检查更新",
         "enableBuiltinEnhanced": "内置增强功能",
-        "proxyLayoutColumns": "代理页布局列数",
+        "proxyLayoutColumns": "账号页布局列数",
         "autoLogClean": "自动清理日志",
         "autoDelayDetection": "自动延迟检测",
         "autoDelayDetectionInterval": "自动延迟检测间隔",
@@ -407,9 +407,9 @@
         "defaultLatencyTimeout": "测试超时时间"
       },
       "tooltips": {
-        "autoCloseConnections": "当代理组选中节点或代理模式变动时，关闭已建立的连接",
+        "autoCloseConnections": "当账号分组选中账号或收发模式变动时，关闭已建立的连接",
         "enableBuiltinEnhanced": "配置文件的兼容性处理",
-        "autoDelayDetection": "后台定时检测当前节点延迟",
+        "autoDelayDetection": "后台定时检测当前账号延迟",
         "defaultLatencyTest": "仅用于 HTTP 客户端请求测试，不会对配置文件产生影响"
       },
       "options": {
@@ -434,31 +434,31 @@
       }
     },
     "sysproxy": {
-      "title": "系统代理设置",
+      "title": "系统邮件通道设置",
       "fieldsets": {
-        "currentStatus": "当前系统代理"
+        "currentStatus": "当前系统邮件通道"
       },
       "fields": {
         "enableStatus": "开启状态：",
         "serverAddr": "服务地址：",
         "pacUrl": "PAC 地址：",
-        "proxyHost": "代理主机",
+        "proxyHost": "账号主机",
         "usePacMode": "使用 PAC 模式",
-        "proxyGuard": "系统代理守卫",
-        "guardDuration": "代理守卫间隔",
+        "proxyGuard": "系统邮件通道守卫",
+        "guardDuration": "账号守卫间隔",
         "alwaysUseDefaultBypass": "始终使用默认绕过",
-        "enableBypassCheck": "验证代理绕过格式",
-        "proxyBypass": "代理绕过设置：",
+        "enableBypassCheck": "验证账号绕过格式",
+        "proxyBypass": "账号绕过设置：",
         "bypass": "当前绕过：",
         "pacScriptContent": "PAC 脚本内容"
       },
       "tooltips": {
-        "proxyGuard": "开启以防止其他软件修改操作系统的代理设置"
+        "proxyGuard": "开启以防止其他软件修改操作系统的通道设置"
       },
       "messages": {
-        "durationTooShort": "代理守护间隔时间不得低于 1 秒",
-        "invalidBypass": "无效的代理绕过格式",
-        "invalidProxyHost": "代理主机格式无效"
+        "durationTooShort": "账号守护间隔时间不得低于 1 秒",
+        "invalidBypass": "无效的账号绕过格式",
+        "invalidProxyHost": "账号主机格式无效"
       },
       "actions": {
         "editPac": "编辑 PAC"
@@ -541,8 +541,8 @@
           "description": "回退 DNS 服务器列表，用逗号分隔"
         },
         "proxy": {
-          "label": "代理节点DNS",
-          "description": "代理节点域名解析服务器，仅用于解析代理节点的域名，用逗号分隔"
+          "label": "邮件账号DNS",
+          "description": "邮件账号域名解析服务器，仅用于解析邮件账号的域名，用逗号分隔"
         },
         "directNameserver": {
           "label": "直连域名服务器",
@@ -602,11 +602,11 @@
         "rule": "规则模式",
         "global": "全局模式",
         "openOrCloseDashboard": "打开/关闭面板",
-        "toggleSystemProxy": "打开/关闭系统代理",
+        "toggleSystemProxy": "打开/关闭系统邮件通道",
         "toggleTunMode": "打开/关闭 TUN 模式",
         "entryLightweightMode": "进入轻量模式",
         "direct": "直连模式",
-        "reactivateProfiles": "重新激活订阅"
+        "reactivateProfiles": "重新激活邮箱配置"
       }
     },
     "password": {
@@ -625,7 +625,7 @@
   "feedback": {
     "notifications": {
       "clash": {
-        "restartSuccess": "已重启 Clash 内核",
+        "restartSuccess": "已重启 邮件引擎",
         "versionUpdated": "内核版本已更新",
         "alreadyLatestVersion": "已经是最新内核版本",
         "changeSuccess": "内核切换成功",
@@ -637,8 +637,8 @@
         "uninstallSuccess": "已成功卸载服务"
       },
       "updater": {
-        "withClashProxySuccess": "使用 Clash 代理更新成功",
-        "withClashProxyFailed": "使用 Clash 代理更新失败"
+        "withClashProxySuccess": "使用 邮件通道更新成功",
+        "withClashProxyFailed": "使用 邮件通道更新失败"
       }
     }
   },

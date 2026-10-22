@@ -31,8 +31,8 @@
         "onlyYaml": "Only YAML Files Supported"
       },
       "notifications": {
-        "importRetry": "Import failed, retrying with Clash proxy...",
-        "importFail": "Import failed even with Clash proxy",
+        "importRetry": "Import failed, retrying with MailMate account...",
+        "importFail": "Import failed even with MailMate account",
         "importNeedsRefresh": "Profile imported but may need manual refresh",
         "importSuccess": "Profile imported successfully, please restart if not visible",
         "profileSwitched": "Profile Switched",
@@ -50,7 +50,7 @@
   "components": {
     "card": {
       "labels": {
-        "clickToImport": "Click to import subscription"
+        "clickToImport": "Click to import mailbox config"
       }
     },
     "fileInput": {
@@ -63,13 +63,13 @@
       "editInfo": "Edit Info",
       "editFile": "Edit File",
       "editRules": "Edit Rules",
-      "editProxies": "Edit Proxies",
-      "editGroups": "Edit Proxy Groups",
+      "editProxies": "Edit Accounts",
+      "editGroups": "Edit Account Groups",
       "extendConfig": "Extend Config",
       "extendScript": "Extend Script",
       "openFile": "Open File",
       "update": "Update",
-      "updateViaProxy": "Update via proxy"
+      "updateViaProxy": "Update via account"
     },
     "more": {
       "global": {
@@ -104,33 +104,33 @@
       "fields": {
         "type": "Type",
         "description": "Descriptions",
-        "subscriptionUrl": "Subscription URL",
+        "subscriptionUrl": "Mailbox Config URL",
         "httpTimeout": "HTTP Request Timeout",
         "updateInterval": "Update Interval",
-        "useSystemProxy": "Use System Proxy",
-        "useClashProxy": "Use Clash Proxy",
+        "useSystemProxy": "Use System Mail Channel",
+        "useClashProxy": "Use MailMate Account",
         "acceptInvalidCerts": "Allows Invalid Certificates (Danger)",
         "allowAutoUpdate": "Allow Auto Update"
       },
       "feedback": {
         "notifications": {
-          "creationRetry": "Profile creation failed, retrying with Clash proxy...",
-          "creationSuccess": "Profile creation succeeded with Clash proxy"
+          "creationRetry": "Profile creation failed, retrying with MailMate account...",
+          "creationSuccess": "Profile creation succeeded with MailMate account"
         }
       }
     },
     "proxiesEditor": {
-      "title": "Edit Proxies",
+      "title": "Edit Accounts",
       "placeholders": {
         "multiUri": "Use newlines for multiple uri(Base64 encoding supported)"
       },
       "actions": {
-        "prepend": "Prepend Proxy",
-        "append": "Append Proxy"
+        "prepend": "Prepend Account",
+        "append": "Append Account"
       }
     },
     "groupsEditor": {
-      "title": "Edit Proxy Groups",
+      "title": "Edit Account Groups",
       "errors": {
         "nameRequired": "Group Name Required",
         "nameExists": "Group Name Already Exists"
@@ -138,8 +138,8 @@
       "fields": {
         "type": "Group Type",
         "name": "Group Name",
-        "icon": "Proxy Group Icon",
-        "proxies": "Use Proxies",
+        "icon": "Account Group Icon",
+        "proxies": "Use Accounts",
         "provider": "Use Provider",
         "healthCheckUrl": "Health Check Url",
         "expectedStatus": "Expected Status",
@@ -150,8 +150,8 @@
         "filter": "Filter",
         "excludeFilter": "Exclude Filter",
         "excludeType": "Exclude Type",
-        "includeAll": "Include All Proxies and Providers",
-        "includeAllProxies": "Include All Proxies",
+        "includeAll": "Include All Accounts and Providers",
+        "includeAllProxies": "Include All Accounts",
         "includeAllProviders": "Include All Providers"
       },
       "toggles": {
@@ -180,7 +180,7 @@
       "title": "Script Console"
     },
     "qrViewer": {
-      "title": "Subscription QR Code"
+      "title": "Mailbox Config QR Code"
     }
   }
 }

@@ -3,8 +3,8 @@
     "navigation": {
       "tabs": {
         "home": "首 页",
-        "proxies": "代 理",
-        "profiles": "订 阅",
+        "proxies": "账 号",
+        "profiles": "邮 箱",
         "connections": "连 接",
         "rules": "规 则",
         "logs": "日 志",

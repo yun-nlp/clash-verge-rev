@@ -67,14 +67,29 @@ jobs:
           $pkg.version = "2.5.2-traffic.1"
           $pkg | ConvertTo-Json -Depth 100 | Set-Content $pkgPath -Encoding utf8
 
-      - name: Tauri build
+      - name: Tauri build (portable, no installer)
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-        run: pnpm tauri build --target x86_64-pc-windows-msvc -b nsis
+        run: pnpm tauri build --target x86_64-pc-windows-msvc -b none
 
-      - name: Upload Windows x64 installer
+      - name: Make portable zip
+        shell: pwsh
+        run: |
+          $releaseDir = "src-tauri/target/x86_64-pc-windows-msvc/release"
+          $out = "MailMate-portable-windows-x64"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item "$releaseDir/MailMate.exe" "$out/" -Force
+          Copy-Item "$releaseDir/verge-mihomo.exe" "$out/" -Force -ErrorAction SilentlyContinue
+          Copy-Item "$releaseDir/verge-mihomo-alpha.exe" "$out/" -Force -ErrorAction SilentlyContinue
+          if (Test-Path "$releaseDir/resources") { Copy-Item "$releaseDir/resources" "$out/resources" -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path "$out/.config" | Out-Null
+          New-Item -ItemType File -Force -Path "$out/.config/PORTABLE" | Out-Null
+          Compress-Archive -Path "$out/*" -DestinationPath "MailMate-portable-windows-x64.zip" -Force
+          Get-ChildItem "MailMate-portable-windows-x64.zip"
+
+      - name: Upload Windows x64 portable
         uses: actions/upload-artifact@v7
         with:
-          name: clash-verge-traffic-windows-x64
-          path: target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          name: mailmate-portable-windows-x64
+          path: MailMate-portable-windows-x64.zip
           if-no-files-found: error

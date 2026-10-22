@@ -8,8 +8,8 @@ notifications:
     body: '{mode} moduna geçildi.'
   systemProxyToggled:
     title: Sistem Vekil'i
-    'on': System proxy has been enabled.
-    'off': System proxy has been disabled.
+    'on': System account has been enabled.
+    'off': System account has been disabled.
   tunModeToggled:
     title: TUN Modu
     'on': TUN mode has been enabled.
@@ -22,19 +22,19 @@ notifications:
     body: Profil yeniden etkinleştirildi.
   appQuit:
     title: Çıkış Yapılmak Üzere
-    body: Clash Verge kapanmak üzere.
+    body: MailMate kapanmak üzere.
   appHidden:
     title: Uygulama Gizlendi
-    body: Clash Verge arka planda çalışıyor.
+    body: MailMate arka planda çalışıyor.
   updateReady:
-    title: Clash Verge Update
+    title: MailMate Update
     body: A new version (v{version}) has been downloaded and is ready to install.
     installNow: Install Now
     later: Later
 service:
-  adminInstallPrompt: Clash Verge hizmetini kurmak için yönetici ayrıcalıkları gerekir.
-  adminUninstallPrompt: Clash Verge hizmetini kaldırmak için yönetici ayrıcalıkları gerekir.
-  translocatedCorePath: Clash Verge is running from a temporary (App Translocation) path and can't locate the core. Please move Clash Verge into the Applications folder and reopen it.
+  adminInstallPrompt: MailMate hizmetini kurmak için yönetici ayrıcalıkları gerekir.
+  adminUninstallPrompt: MailMate hizmetini kaldırmak için yönetici ayrıcalıkları gerekir.
+  translocatedCorePath: MailMate is running from a temporary (App Translocation) path and can't locate the core. Please move MailMate into the Applications folder and reopen it.
 tray:
   dashboard: Gösterge Paneli
   ruleMode: Kural Modu
@@ -57,9 +57,9 @@ tray:
   openDir: Dizini Aç
   appLog: Uygulama Günlüğü
   coreLog: Çekirdek Günlüğü
-  restartClash: Clash Çekirdeğini Yeniden Başlat
+  restartClash: MailMate Çekirdeğini Yeniden Başlat
   restartApp: Uygulamayı Yeniden Başlat
-  vergeVersion: Verge Sürümü
+  vergeVersion: MailMate Sürümü
   more: Daha Fazla
   exit: Çıkış
   tooltip:

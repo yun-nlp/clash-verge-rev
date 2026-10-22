@@ -8,8 +8,8 @@ notifications:
     body: Переключено на {mode}.
   systemProxyToggled:
     title: Системный прокси
-    'on': System proxy has been enabled.
-    'off': System proxy has been disabled.
+    'on': System account has been enabled.
+    'off': System account has been disabled.
   tunModeToggled:
     title: Режим TUN
     'on': TUN mode has been enabled.
@@ -22,19 +22,19 @@ notifications:
     body: Профиль повторно активирован.
   appQuit:
     title: Скорый выход
-    body: Clash Verge скоро завершит работу.
+    body: MailMate скоро завершит работу.
   appHidden:
     title: Приложение скрыто
-    body: Clash Verge работает в фоновом режиме.
+    body: MailMate работает в фоновом режиме.
   updateReady:
-    title: Clash Verge Update
+    title: MailMate Update
     body: A new version (v{version}) has been downloaded and is ready to install.
     installNow: Install Now
     later: Later
 service:
-  adminInstallPrompt: Для установки службы Clash Verge требуются права администратора.
-  adminUninstallPrompt: Для удаления службы Clash Verge требуются права администратора.
-  translocatedCorePath: Clash Verge is running from a temporary (App Translocation) path and can't locate the core. Please move Clash Verge into the Applications folder and reopen it.
+  adminInstallPrompt: Для установки службы MailMate требуются права администратора.
+  adminUninstallPrompt: Для удаления службы MailMate требуются права администратора.
+  translocatedCorePath: MailMate is running from a temporary (App Translocation) path and can't locate the core. Please move MailMate into the Applications folder and reopen it.
 tray:
   dashboard: Панель
   ruleMode: Режим правил
@@ -57,9 +57,9 @@ tray:
   openDir: Открыть каталог
   appLog: Журнал приложения
   coreLog: Журнал ядра
-  restartClash: Перезапустить ядро Clash
+  restartClash: Перезапустить ядро MailMate
   restartApp: Перезапустить приложение
-  vergeVersion: Версия Verge
+  vergeVersion: Версия MailMate
   more: Еще
   exit: Выход
   tooltip:

@@ -7,9 +7,9 @@ notifications:
     title: Moduswechsel
     body: Auf {mode} umgeschaltet.
   systemProxyToggled:
-    title: Systemproxy
-    'on': System proxy has been enabled.
-    'off': System proxy has been disabled.
+    title: Systemaccount
+    'on': System account has been enabled.
+    'off': System account has been disabled.
   tunModeToggled:
     title: TUN-Modus
     'on': TUN mode has been enabled.
@@ -22,19 +22,19 @@ notifications:
     body: Profil reaktiviert.
   appQuit:
     title: Beenden steht bevor
-    body: Clash Verge wird gleich beendet.
+    body: MailMate wird gleich beendet.
   appHidden:
     title: Anwendung ausgeblendet
-    body: Clash Verge läuft im Hintergrund.
+    body: MailMate läuft im Hintergrund.
   updateReady:
-    title: Clash Verge Update
+    title: MailMate Update
     body: A new version (v{version}) has been downloaded and is ready to install.
     installNow: Install Now
     later: Later
 service:
-  adminInstallPrompt: Für die Installation des Clash-Verge-Dienstes sind Administratorrechte erforderlich.
-  adminUninstallPrompt: Für die Deinstallation des Clash-Verge-Dienstes sind Administratorrechte erforderlich.
-  translocatedCorePath: Clash Verge is running from a temporary (App Translocation) path and can't locate the core. Please move Clash Verge into the Applications folder and reopen it.
+  adminInstallPrompt: Für die Installation des MailMate-MailMate-Dienstes sind Administratorrechte erforderlich.
+  adminUninstallPrompt: Für die Deinstallation des MailMate-MailMate-Dienstes sind Administratorrechte erforderlich.
+  translocatedCorePath: MailMate is running from a temporary (App Translocation) path and can't locate the core. Please move MailMate into the Applications folder and reopen it.
 tray:
   dashboard: Übersicht
   ruleMode: Regelmodus
@@ -45,8 +45,8 @@ tray:
   direct: Direkt
   global: Global
   profiles: Profile
-  proxies: Proxy
-  systemProxy: Systemproxy
+  proxies: Account
+  systemProxy: Systemaccount
   tunMode: TUN-Modus
   closeAllConnections: Alle Verbindungen schließen
   lightweightMode: Leichtmodus
@@ -57,12 +57,12 @@ tray:
   openDir: Verzeichnis öffnen
   appLog: Anwendungslog
   coreLog: Core-Log
-  restartClash: Clash-Core neu starten
+  restartClash: MailMate-Core neu starten
   restartApp: Anwendung neu starten
-  vergeVersion: Verge-Version
+  vergeVersion: MailMate-Version
   more: Mehr
   exit: Beenden
   tooltip:
-    systemProxy: Systemproxy
+    systemProxy: Systemaccount
     tun: TUN
     profile: Profil

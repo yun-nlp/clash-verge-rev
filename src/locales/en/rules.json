@@ -27,7 +27,7 @@
         "labels": {
           "type": "Rule Type",
           "content": "Rule Content",
-          "proxyPolicy": "Proxy Policy"
+          "proxyPolicy": "Account Policy"
         },
         "toggles": {
           "noResolve": "No Resolve"

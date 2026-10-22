@@ -83,8 +83,8 @@
     },
     "notifications": {
       "importSuccess": "Profile Imported Successfully",
-      "importSubscriptionSuccess": "Import subscription successful",
-      "importWithClashProxy": "Profile Imported with Clash proxy",
+      "importSubscriptionSuccess": "Import mailbox config successful",
+      "importWithClashProxy": "Profile Imported with MailMate account",
       "updateAvailable": "Update Available",
       "saved": "Saved successfully",
       "common": {
@@ -96,9 +96,9 @@
     },
     "validation": {
       "config": {
-        "failed": "Subscription configuration validation failed. Please check the subscription configuration file; modifications have been rolled back.",
-        "bootFailed": "Boot subscription configuration validation failed. Started with the default configuration; please check the subscription configuration file.",
-        "coreChangeFailed": "Configuration validation failed when switching the kernel. Started with the default configuration; please check the subscription configuration file.",
+        "failed": "Mailbox Config configuration validation failed. Please check the mailbox config configuration file; modifications have been rolled back.",
+        "bootFailed": "Boot mailbox config configuration validation failed. Started with the default configuration; please check the mailbox config configuration file.",
+        "coreChangeFailed": "Configuration validation failed when switching the kernel. Started with the default configuration; please check the mailbox config configuration file.",
         "processTerminated": "The validation process has been terminated."
       },
       "script": {

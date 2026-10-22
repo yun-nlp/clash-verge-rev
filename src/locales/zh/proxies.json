@@ -6,51 +6,51 @@
       "direct": "直连"
     },
     "actions": {
-      "toggleChain": "链式代理",
+      "toggleChain": "账号链路",
       "connect": "连接",
       "disconnect": "断开",
       "connecting": "连接中...",
       "clearChainConfig": "删除链式配置"
     },
     "provider": {
-      "title": "代理集合",
+      "title": "账号集合",
       "actions": {
         "updateAll": "更新全部",
         "update": "更新"
       }
     },
     "rules": {
-      "title": "代理规则",
+      "title": "收发规则",
       "select": "选择规则"
     },
     "labels": {
-      "proxyCount": "节点数量",
+      "proxyCount": "账号数量",
       "delayCheckReset": "进行延迟测试，以取消固定"
     },
     "tooltips": {
-      "locate": "当前节点",
+      "locate": "当前账号",
       "delayCheck": "延迟测试",
       "sortDefault": "默认排序",
       "sortDelay": "按延迟排序",
       "sortName": "按名称排序",
       "delayCheckUrl": "延迟测试链接",
-      "showBasic": "隐藏节点细节",
-      "showDetail": "展示节点细节",
-      "filter": "过滤节点"
+      "showBasic": "隐藏账号细节",
+      "showDetail": "展示账号细节",
+      "filter": "过滤账号"
     },
     "placeholders": {
       "delayCheckUrl": "延迟测试链接"
     },
     "chain": {
-      "header": "代理链配置",
-      "warning": "链式代理会显著降低网速。如果您没有明确的业务需求，或不了解此项配置，请保持关闭",
-      "empty": "链式代理会显著降低网速。如果您没有明确的业务需求，或不了解此项配置，请保持关闭",
-      "instruction": "顺序点击节点添加到代理链中",
-      "minimumNodes": "链式代理至少需要 2 个节点",
-      "minimumNodesHint": "链式代理至少需要 2 个节点，请再添加一个节点。",
-      "connectFailed": "连接链式代理失败",
-      "disconnectFailed": "断开链式代理失败",
-      "duplicateNode": "该节点已在链式代理表中",
+      "header": "账号链路配置",
+      "warning": "账号链路会显著降低网速。如果您没有明确的业务需求，或不了解此项配置，请保持关闭",
+      "empty": "账号链路会显著降低网速。如果您没有明确的业务需求，或不了解此项配置，请保持关闭",
+      "instruction": "顺序点击账号添加到账号链路中",
+      "minimumNodes": "账号链路至少需要 2 个账号",
+      "minimumNodesHint": "账号链路至少需要 2 个账号，请再添加一个账号。",
+      "connectFailed": "连接账号链路失败",
+      "disconnectFailed": "断开账号链路失败",
+      "duplicateNode": "该账号已在账号链路表中",
       "entryNode": "入口",
       "exitNode": "出口"
     },
@@ -58,8 +58,8 @@
       "directMode": "直连模式"
     },
     "title": {
-      "default": "代理组",
-      "chainMode": "链式代理模式"
+      "default": "账号分组",
+      "chainMode": "链式收发模式"
     }
   },
   "feedback": {
@@ -76,11 +76,11 @@
   "components": {
     "enums": {
       "strategies": {
-        "select": "手动选择代理",
-        "url-test": "根据 URL 测试延迟选择代理",
-        "fallback": "不可用时切换到另一个代理",
-        "load-balance": "根据负载均衡分配代理",
-        "relay": "根据定义的代理链传递"
+        "select": "手动选择账号",
+        "url-test": "根据 URL 测试延迟选择账号",
+        "fallback": "不可用时切换到另一个账号",
+        "load-balance": "根据负载均衡分配账号",
+        "relay": "根据定义的账号链路传递"
       },
       "policies": {
         "DIRECT": "直接连接 (DIRECT)",

@@ -6,25 +6,25 @@
       "direct": "Direct"
     },
     "actions": {
-      "toggleChain": "Chain Proxy",
+      "toggleChain": "Account Chain",
       "connect": "Connect",
       "disconnect": "Disconnect",
       "connecting": "Connecting...",
       "clearChainConfig": "Delete Chain Config"
     },
     "provider": {
-      "title": "Proxy Provider",
+      "title": "Account Provider",
       "actions": {
         "updateAll": "Update All",
         "update": "Update"
       }
     },
     "rules": {
-      "title": "Proxy Rules",
+      "title": "Account Rules",
       "select": "Select Rules"
     },
     "labels": {
-      "proxyCount": "Proxy Count",
+      "proxyCount": "Account Count",
       "delayCheckReset": "Delay check to cancel fixed"
     },
     "tooltips": {
@@ -34,23 +34,23 @@
       "sortDelay": "Sort by delay",
       "sortName": "Sort by name",
       "delayCheckUrl": "Delay check URL",
-      "showBasic": "Proxy basic",
-      "showDetail": "Proxy detail",
+      "showBasic": "Account basic",
+      "showDetail": "Account detail",
       "filter": "Filter"
     },
     "placeholders": {
       "delayCheckUrl": "Delay check URL"
     },
     "chain": {
-      "header": "Chain Proxy Config",
-      "warning": "Chain proxy will significantly reduce network speed. If you do not have a clear business need, or do not understand this configuration, keep it disabled.",
-      "empty": "Chain proxy will significantly reduce network speed. If you do not have a clear business need, or do not understand this configuration, keep it disabled.",
-      "instruction": "Click nodes in order to add to proxy chain",
-      "minimumNodes": "Chain proxy requires at least 2 nodes",
-      "minimumNodesHint": "Chain proxy requires at least 2 nodes. Please add one more node.",
-      "connectFailed": "Failed to connect to proxy chain",
-      "disconnectFailed": "Failed to disconnect from proxy chain",
-      "duplicateNode": "Proxy node already exists in chain",
+      "header": "Account Chain Config",
+      "warning": "Chain account will significantly reduce network speed. If you do not have a clear business need, or do not understand this configuration, keep it disabled.",
+      "empty": "Chain account will significantly reduce network speed. If you do not have a clear business need, or do not understand this configuration, keep it disabled.",
+      "instruction": "Click accounts in order to add to account chain",
+      "minimumNodes": "Chain account requires at least 2 accounts",
+      "minimumNodesHint": "Chain account requires at least 2 accounts. Please add one more account.",
+      "connectFailed": "Failed to connect to account chain",
+      "disconnectFailed": "Failed to disconnect from account chain",
+      "duplicateNode": "Account account already exists in chain",
       "entryNode": "Entry",
       "exitNode": "Exit"
     },
@@ -58,8 +58,8 @@
       "directMode": "Direct Mode"
     },
     "title": {
-      "default": "Proxy Groups",
-      "chainMode": "Proxy Chain Mode"
+      "default": "Account Groups",
+      "chainMode": "Account Chain Mode"
     }
   },
   "feedback": {
@@ -76,11 +76,11 @@
   "components": {
     "enums": {
       "strategies": {
-        "select": "Select proxy manually",
-        "url-test": "Select proxy based on URL test delay",
-        "fallback": "Switch to another proxy on error",
-        "load-balance": "Distribute proxy based on load balancing",
-        "relay": "Pass through the defined proxy chain"
+        "select": "Select account manually",
+        "url-test": "Select account based on URL test delay",
+        "fallback": "Switch to another account on error",
+        "load-balance": "Distribute account based on load balancing",
+        "relay": "Pass through the defined account chain"
       },
       "policies": {
         "DIRECT": "Data goes directly outbound (DIRECT)",

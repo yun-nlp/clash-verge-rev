@@ -80,6 +80,42 @@ let lastFlushAt = 0
 
 const connectionListeners = new Set<ConnectionListener>()
 const summaryListeners = new Set<ConnectionListener>()
+const AGGREGATE_ENABLED_STORAGE_KEY = 'connection-aggregate-enabled'
+
+const readAggregateEnabled = () => {
+  try {
+    return localStorage.getItem(AGGREGATE_ENABLED_STORAGE_KEY) !== 'false'
+  } catch {
+    return true
+  }
+}
+
+let aggregateEnabled = readAggregateEnabled()
+const aggregateEnabledListeners = new Set<() => void>()
+
+export const isAggregateEnabled = () => aggregateEnabled
+
+export const subscribeAggregateEnabled = (listener: () => void) => {
+  aggregateEnabledListeners.add(listener)
+  return () => {
+    aggregateEnabledListeners.delete(listener)
+  }
+}
+
+export const setAggregateEnabled = (enabled: boolean) => {
+  if (aggregateEnabled === enabled) return
+  aggregateEnabled = enabled
+  try {
+    localStorage.setItem(
+      AGGREGATE_ENABLED_STORAGE_KEY,
+      enabled ? 'true' : 'false',
+    )
+  } catch {
+    // ignore persistence errors
+  }
+  aggregateEnabledListeners.forEach((listener) => listener())
+}
+
 const aggregateByKey = new Map<string, ConnectionAggregateItem>()
 const aggregateActiveKeysById = new Map<string, string>()
 
@@ -273,7 +309,9 @@ const updateAggregateItemMetadata = (
   const chains = connection.chains || []
   item.host = getAggregateHost(connection)
   item.topGroup = getAggregateTopGroup(chains)
-  getAggregateGroups(chains).forEach((group) => addUniqueText(item.groups, group))
+  getAggregateGroups(chains).forEach((group) =>
+    addUniqueText(item.groups, group),
+  )
   item.chains = chains.slice()
   addUniqueText(item.rules, getConnectionRuleText(connection))
   addUniqueText(item.processes, getConnectionProcessText(connection))
@@ -378,7 +416,10 @@ const mergeConnectionSnapshot = (
     const connection = nextConnections[i]
     const previousConnection = previousActiveById.get(connection.id)
     if (previousConnection) previousActiveById.delete(connection.id)
-    const normalizedConnection = normalizeConnection(connection, previousConnection)
+    const normalizedConnection = normalizeConnection(
+      connection,
+      previousConnection,
+    )
     activeConnections.push(normalizedConnection)
     activeAggregateInputs.push({
       connection: normalizedConnection,
@@ -386,10 +427,9 @@ const mergeConnectionSnapshot = (
     })
   }
 
-  const aggregatedConnections = mergeConnectionAggregates(
-    activeAggregateInputs,
-    previousActiveById,
-  )
+  const aggregatedConnections = aggregateEnabled
+    ? mergeConnectionAggregates(activeAggregateInputs, previousActiveById)
+    : createAggregateSnapshot()
 
   if (previousActiveById.size === 0) {
     return {
@@ -602,7 +642,9 @@ const clearAggregateConnectionById = (id: string) => {
 }
 
 const clearAggregateConnectionsByGroups = (groups: string[]) => {
-  const groupSet = new Set(groups.map((group) => cleanText(group)).filter(Boolean))
+  const groupSet = new Set(
+    groups.map((group) => cleanText(group)).filter(Boolean),
+  )
   if (groupSet.size === 0) return
 
   const keysToDelete = new Set<string>()

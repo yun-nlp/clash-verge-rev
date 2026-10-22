@@ -12,7 +12,7 @@
       "title": "System Setting",
       "toggles": {
         "tunMode": "Tun Mode",
-        "systemProxy": "System Proxy"
+        "systemProxy": "System Mail Channel"
       },
       "tooltips": {
         "silentStart": "Start the program in background mode without displaying the panel"
@@ -30,8 +30,8 @@
     },
     "proxyControl": {
       "tooltips": {
-        "systemProxy": "Enable to modify the operating system's proxy settings. If enabling fails, modify the operating system's proxy settings manually",
-        "tunMode": "Tun (Virtual NIC) mode: Captures all system traffic, when enabled, there is no need to enable system proxy.",
+        "systemProxy": "Enable to modify the operating system's account settings. If enabling fails, modify the operating system's account settings manually",
+        "tunMode": "Tun (Virtual NIC) mode: Captures all system traffic, when enabled, there is no need to enable system account.",
         "tunUnavailable": "TUN requires Service Mode or Admin Mode"
       },
       "actions": {
@@ -39,7 +39,7 @@
         "uninstallService": "Uninstall Service"
       },
       "fields": {
-        "systemProxy": "System Proxy",
+        "systemProxy": "System Mail Channel",
         "tunMode": "Tun Mode"
       }
     },
@@ -90,7 +90,7 @@
       "system": "System"
     },
     "clash": {
-      "title": "Clash Setting",
+      "title": "MailMate Setting",
       "form": {
         "fields": {
           "allowLan": "Allow LAN",
@@ -101,7 +101,7 @@
           "portConfig": "Port Config",
           "external": "External",
           "webUI": "Web UI",
-          "clashCore": "Clash Core",
+          "clashCore": "Mail Engine",
           "openUwpTool": "Open UWP tool",
           "updateGeoData": "Update GeoData",
           "tunnels": {
@@ -110,8 +110,8 @@
             "localPort": "Local Listen Port",
             "targetAddr": "Target Address",
             "targetPort": "Target Port",
-            "proxyGroup": "Proxy Group",
-            "proxyNode": "Proxy Node",
+            "proxyGroup": "Account Group",
+            "proxyNode": "Account Account",
             "protocols": "Protocol",
             "existing": "Existing Tunnels",
             "default": "Follow Current Configuration",
@@ -131,7 +131,7 @@
         },
         "tooltips": {
           "networkInterface": "Network Interface",
-          "unifiedDelay": "When unified delay is turned on, two delay tests will be performed to eliminate the delay differences between different types of nodes caused by connection handshakes, etc",
+          "unifiedDelay": "When unified delay is turned on, two delay tests will be performed to eliminate the delay differences between different types of accounts caused by connection handshakes, etc",
           "logLevel": "This parameter is valid only for kernel log files in the log directory Service folder",
           "openUwpTool": "Since Windows 8, UWP apps (such as Microsoft Store) are restricted from directly accessing local host network services, and this tool can be used to bypass this restriction"
         },
@@ -150,7 +150,7 @@
   "components": {
     "verge": {
       "basic": {
-        "title": "Verge Basic Setting",
+        "title": "MailMate Basic Setting",
         "actions": {
           "browse": "Browse"
         },
@@ -173,7 +173,7 @@
         }
       },
       "advanced": {
-        "title": "Verge Advanced Setting",
+        "title": "MailMate Advanced Setting",
         "tooltips": {
           "backupInfo": "Support local or WebDAV backup of configuration files",
           "openConfDir": "If the software runs abnormally, BACKUP and delete all files in this folder then restart the software",
@@ -197,7 +197,7 @@
           "liteModeSettings": "LightWeight Mode Settings",
           "exit": "Exit",
           "exportDiagnostics": "Export Diagnostic Info",
-          "vergeVersion": "Verge Version"
+          "vergeVersion": "MailMate Version"
         }
       },
       "theme": {
@@ -227,24 +227,24 @@
           "preferSystemTitlebar": "Prefer System Titlebar",
           "trafficGraph": "Traffic Graph",
           "memoryUsage": "Core Usage",
-          "proxyGroupIcon": "Proxy Group Icon",
+          "proxyGroupIcon": "Account Group Icon",
           "toastPosition": "Toast Position",
           "hoverNavigator": "Hover Jump Navigator",
           "hoverNavigatorDelay": "Hover Jump Navigator Delay",
           "navIcon": "Nav Icon",
           "collapseNavBar": "Collapse Navigation Bar",
           "trayIcon": "Tray Icon",
-          "proxyGroupsDisplayMode": "Proxy Groups Display Mode",
+          "proxyGroupsDisplayMode": "Account Groups Display Mode",
           "showOutboundModesInline": "Show Outbound Modes Inline",
           "commonTrayIcon": "Common Tray Icon",
-          "systemProxyTrayIcon": "System Proxy Tray Icon",
+          "systemProxyTrayIcon": "System Mail Channel Tray Icon",
           "tunTrayIcon": "Tun Tray Icon",
           "enableTrayIcon": "Enable Tray Icon",
           "enableTraySpeed": "Enable Tray Speed",
           "pauseRenderTrafficStatsOnBlur": "Pause rendering traffic statistics when blurred"
         },
         "tooltips": {
-          "hoverNavigator": "Automatically scroll to the corresponding proxy group when hovering over alphabet letters",
+          "hoverNavigator": "Automatically scroll to the corresponding account group when hovering over alphabet letters",
           "hoverNavigatorDelay": "Delay before auto scrolling when hovering, in milliseconds"
         },
         "options": {
@@ -276,7 +276,7 @@
         "socks": "Socks Port",
         "http": "Http(s) Port",
         "redir": "Redir Port",
-        "tproxy": "Tproxy Port"
+        "tproxy": "Taccount Port"
       },
       "actions": {
         "random": "Random Port"
@@ -399,7 +399,7 @@
         "autoCloseConnections": "Auto Close Connections",
         "autoCheckUpdate": "Auto Check Update",
         "enableBuiltinEnhanced": "Enable Builtin Enhanced",
-        "proxyLayoutColumns": "Proxy Layout Columns",
+        "proxyLayoutColumns": "Account Layout Columns",
         "autoLogClean": "Auto Log Clean",
         "autoDelayDetection": "Auto Delay Detection",
         "autoDelayDetectionInterval": "Auto Delay Detection Interval",
@@ -407,9 +407,9 @@
         "defaultLatencyTimeout": "Default Latency Timeout"
       },
       "tooltips": {
-        "autoCloseConnections": "Terminate established connections when the proxy group selection or proxy mode changes",
+        "autoCloseConnections": "Terminate established connections when the account group selection or account mode changes",
         "enableBuiltinEnhanced": "Compatibility handling for the configuration file",
-        "autoDelayDetection": "Periodically test the current node latency in the background",
+        "autoDelayDetection": "Periodically test the current account latency in the background",
         "defaultLatencyTest": "Used for HTTP client request testing only and won't make a difference to the configuration file"
       },
       "options": {
@@ -434,31 +434,31 @@
       }
     },
     "sysproxy": {
-      "title": "System Proxy Setting",
+      "title": "System Mail Channel Setting",
       "fieldsets": {
-        "currentStatus": "Current System Proxy"
+        "currentStatus": "Current System Mail Channel"
       },
       "fields": {
         "enableStatus": "Enable Status:",
         "serverAddr": "Server Addr: ",
         "pacUrl": "PAC URL: ",
-        "proxyHost": "Proxy Host",
+        "proxyHost": "Account Host",
         "usePacMode": "Use PAC Mode",
-        "proxyGuard": "Proxy Guard",
+        "proxyGuard": "Account Guard",
         "guardDuration": "Guard Duration",
         "alwaysUseDefaultBypass": "Always use Default Bypass",
-        "enableBypassCheck": "Validate Proxy Bypass Format",
-        "proxyBypass": "Proxy Bypass Settings: ",
+        "enableBypassCheck": "Validate Account Bypass Format",
+        "proxyBypass": "Account Bypass Settings: ",
         "bypass": "Bypass: ",
         "pacScriptContent": "PAC Script Content"
       },
       "tooltips": {
-        "proxyGuard": "Enable to prevent other software from modifying the operating system's proxy settings"
+        "proxyGuard": "Enable to prevent other software from modifying the operating system's account settings"
       },
       "messages": {
-        "durationTooShort": "Proxy Daemon Duration Cannot be Less than 1 Second",
+        "durationTooShort": "Account Daemon Duration Cannot be Less than 1 Second",
         "invalidBypass": "Invalid Bypass Format",
-        "invalidProxyHost": "Invalid Proxy Host Format"
+        "invalidProxyHost": "Invalid Account Host Format"
       },
       "actions": {
         "editPac": "Edit PAC"
@@ -541,8 +541,8 @@
           "description": "List of fallback DNS servers, comma separated"
         },
         "proxy": {
-          "label": "Proxy Server Nameserver",
-          "description": "DNS servers for proxy node domain resolution"
+          "label": "Account Server Nameserver",
+          "description": "DNS servers for account account domain resolution"
         },
         "directNameserver": {
           "label": "Direct Nameserver",
@@ -602,7 +602,7 @@
         "rule": "Rule Mode",
         "global": "Global Mode",
         "openOrCloseDashboard": "Open/Close Dashboard",
-        "toggleSystemProxy": "Enable/Disable System Proxy",
+        "toggleSystemProxy": "Enable/Disable System Mail Channel",
         "toggleTunMode": "Enable/Disable Tun Mode",
         "entryLightweightMode": "Entry Lightweight Mode",
         "direct": "Direct Mode",
@@ -625,7 +625,7 @@
   "feedback": {
     "notifications": {
       "clash": {
-        "restartSuccess": "Clash Core Restarted",
+        "restartSuccess": "Mail Engine Restarted",
         "versionUpdated": "Core Version Updated",
         "alreadyLatestVersion": "Already Using Latest Core Version",
         "changeSuccess": "Core changed successfully",
@@ -637,8 +637,8 @@
         "uninstallSuccess": "Service Uninstalled Successfully"
       },
       "updater": {
-        "withClashProxySuccess": "Update with Clash proxy successfully",
-        "withClashProxyFailed": "Update failed even with Clash proxy"
+        "withClashProxySuccess": "Update with MailMate account successfully",
+        "withClashProxyFailed": "Update failed even with MailMate account"
       }
     }
   },

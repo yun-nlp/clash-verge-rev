@@ -20,7 +20,13 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import { useLockFn } from 'ahooks'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { closeAllConnections } from 'tauri-plugin-mihomo-api'
 
@@ -35,7 +41,7 @@ import {
 import { ConnectionAggregateTable } from '@/components/connection/connection-aggregate-table'
 import {
   ConnectionDetail,
-  ConnectionDetailRef,
+  type ConnectionDetailRef,
 } from '@/components/connection/connection-detail'
 import { ConnectionRowItem } from '@/components/connection/connection-row-item'
 import {
@@ -43,7 +49,12 @@ import {
   useConnectionRowViews,
 } from '@/components/connection/connection-row-view'
 import { ConnectionTable } from '@/components/connection/connection-table'
-import { useConnectionData } from '@/hooks/use-connection-data'
+import {
+  isAggregateEnabled,
+  setAggregateEnabled,
+  subscribeAggregateEnabled,
+  useConnectionData,
+} from '@/hooks/use-connection-data'
 import { useConnectionSetting } from '@/hooks/use-connection-setting'
 import { useTrafficData } from '@/hooks/use-traffic-data'
 import parseTraffic from '@/utils/parse-traffic'
@@ -104,6 +115,15 @@ const ConnectionsPage = () => {
   const [selectedAggregateGroups, setSelectedAggregateGroups] = useState<
     string[] | null
   >(null)
+
+  const aggregateEnabled = useSyncExternalStore(
+    subscribeAggregateEnabled,
+    isAggregateEnabled,
+    isAggregateEnabled,
+  )
+  const toggleAggregateEnabled = useCallback(() => {
+    setAggregateEnabled(!isAggregateEnabled())
+  }, [])
 
   const {
     response: { data: connections },
@@ -290,10 +310,7 @@ const ConnectionsPage = () => {
 
     clearAggregatedConnectionsByGroups(selectedAggregateGroupValues)
     setSelectedAggregateGroups(null)
-  }, [
-    clearAggregatedConnectionsByGroups,
-    selectedAggregateGroupValues,
-  ])
+  }, [clearAggregatedConnectionsByGroups, selectedAggregateGroupValues])
 
   const handleClearAggregatedConnections = useCallback(() => {
     if (!window.confirm('清空全部聚合统计？')) return
@@ -324,7 +341,8 @@ const ConnectionsPage = () => {
       header={
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ mx: 1 }}>
-            {t('shared.labels.downloaded')}: {parseTraffic(traffic?.downTotal || 0)}
+            {t('shared.labels.downloaded')}:{' '}
+            {parseTraffic(traffic?.downTotal || 0)}
           </Box>
           <Box sx={{ mx: 1 }}>
             {t('shared.labels.uploaded')}: {parseTraffic(traffic?.upTotal || 0)}
@@ -375,14 +393,16 @@ const ConnectionsPage = () => {
             variant={connectionsType === 'active' ? 'contained' : 'outlined'}
             onClick={() => selectConnectionsType('active')}
           >
-            {t('connections.components.actions.active')} {connections?.activeConnections.length}
+            {t('connections.components.actions.active')}{' '}
+            {connections?.activeConnections.length}
           </Button>
           <Button
             size="small"
             variant={connectionsType === 'closed' ? 'contained' : 'outlined'}
             onClick={() => selectConnectionsType('closed')}
           >
-            {t('connections.components.actions.closed')} {connections?.closedConnections.length}
+            {t('connections.components.actions.closed')}{' '}
+            {connections?.closedConnections.length}
           </Button>
           <Button
             size="small"
@@ -406,6 +426,15 @@ const ConnectionsPage = () => {
         )}
         {isAggregateMode && (
           <>
+            <Button
+              size="small"
+              variant={aggregateEnabled ? 'contained' : 'outlined'}
+              color={aggregateEnabled ? 'success' : 'inherit'}
+              onClick={toggleAggregateEnabled}
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', mr: 1 }}
+            >
+              {aggregateEnabled ? '统计中·点击关闭' : '已暂停·点击开启'}
+            </Button>
             <Select<string[]>
               multiple
               size="small"
@@ -419,7 +448,8 @@ const ConnectionsPage = () => {
                   size="small"
                   checked={
                     aggregateGroups.length > 0 &&
-                    selectedAggregateGroupValues.length === aggregateGroups.length
+                    selectedAggregateGroupValues.length ===
+                      aggregateGroups.length
                   }
                 />
                 <ListItemText primary="全选" />

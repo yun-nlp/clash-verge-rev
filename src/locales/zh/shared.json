@@ -82,9 +82,9 @@
       "prefixedRaw": "{{prefix}} {{message}}"
     },
     "notifications": {
-      "importSuccess": "导入订阅成功",
-      "importSubscriptionSuccess": "导入订阅成功",
-      "importWithClashProxy": "使用 Clash 代理导入订阅成功",
+      "importSuccess": "导入邮箱配置成功",
+      "importSubscriptionSuccess": "导入邮箱配置成功",
+      "importWithClashProxy": "使用 邮件通道导入邮箱配置成功",
       "updateAvailable": "有可用更新",
       "saved": "保存成功",
       "common": {
@@ -96,9 +96,9 @@
     },
     "validation": {
       "config": {
-        "failed": "订阅配置校验失败，请检查订阅配置文件，变更已撤销，错误详情：",
-        "bootFailed": "启动订阅配置校验失败，已使用默认配置启动；请检查订阅配置文件，错误详情：",
-        "coreChangeFailed": "切换内核时配置校验失败，已使用默认配置启动；请检查订阅配置文件，错误详情：",
+        "failed": "邮箱配置配置校验失败，请检查邮箱配置配置文件，变更已撤销，错误详情：",
+        "bootFailed": "启动邮箱配置配置校验失败，已使用默认配置启动；请检查邮箱配置配置文件，错误详情：",
+        "coreChangeFailed": "切换内核时配置校验失败，已使用默认配置启动；请检查邮箱配置配置文件，错误详情：",
         "processTerminated": "验证进程被终止"
       },
       "script": {

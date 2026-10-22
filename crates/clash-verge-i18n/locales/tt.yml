@@ -8,8 +8,8 @@ notifications:
     body: '{mode} режимына күчтел.'
   systemProxyToggled:
     title: Системалы прокси
-    'on': System proxy has been enabled.
-    'off': System proxy has been disabled.
+    'on': System account has been enabled.
+    'off': System account has been disabled.
   tunModeToggled:
     title: TUN режимы
     'on': TUN mode has been enabled.
@@ -22,19 +22,19 @@ notifications:
     body: Профиль яңадан активлаштырылды.
   appQuit:
     title: Чыгар алдыннан
-    body: Clash Verge чыгарга җыена.
+    body: MailMate чыгарга җыена.
   appHidden:
     title: Кушымта яшерелде
-    body: Clash Verge фон режимында эшли.
+    body: MailMate фон режимында эшли.
   updateReady:
-    title: Clash Verge Update
+    title: MailMate Update
     body: A new version (v{version}) has been downloaded and is ready to install.
     installNow: Install Now
     later: Later
 service:
-  adminInstallPrompt: Clash Verge хезмәтен урнаштыру өчен администратор хокуклары кирәк.
-  adminUninstallPrompt: Clash Verge хезмәтен бетерү өчен администратор хокуклары кирәк.
-  translocatedCorePath: Clash Verge is running from a temporary (App Translocation) path and can't locate the core. Please move Clash Verge into the Applications folder and reopen it.
+  adminInstallPrompt: MailMate хезмәтен урнаштыру өчен администратор хокуклары кирәк.
+  adminUninstallPrompt: MailMate хезмәтен бетерү өчен администратор хокуклары кирәк.
+  translocatedCorePath: MailMate is running from a temporary (App Translocation) path and can't locate the core. Please move MailMate into the Applications folder and reopen it.
 tray:
   dashboard: Идарә панеле
   ruleMode: Кагыйдә режимы
@@ -57,9 +57,9 @@ tray:
   openDir: Каталогны ачу
   appLog: Кушымта журналы
   coreLog: Ядро журналы
-  restartClash: Clash ядрәсен кабат җибәрү
+  restartClash: MailMate ядрәсен кабат җибәрү
   restartApp: Кушымтаны кабат җибәрү
-  vergeVersion: Verge версиясе
+  vergeVersion: MailMate версиясе
   more: Күбрәк
   exit: Чыгу
   tooltip:
