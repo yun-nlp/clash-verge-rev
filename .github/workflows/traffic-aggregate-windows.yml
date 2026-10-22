@@ -77,7 +77,8 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $triple = "x86_64-pc-windows-msvc"
-          $releaseDir = "src-tauri/target/$triple/release"
+          $releaseDir = "target/$triple/release"
+          if (-not (Test-Path $releaseDir)) { $releaseDir = "src-tauri/target/$triple/release" }
           $sidecarDir = "src-tauri/sidecar"
           $resourcesSrc = "src-tauri/resources"
           $out = "MailMate-portable-windows-x64"
