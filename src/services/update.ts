@@ -134,22 +134,13 @@ const localVersionNormalized = normalizeVersion(appVersion)
 export const checkUpdateSafe = async (
   options?: CheckOptions,
 ): Promise<Update | null> => {
-  const result = await check({ ...(options ?? {}), allowDowngrades: false })
-  if (!result) return null
-
-  const remoteVersion = resolveRemoteVersion(result)
-  const comparison = compareVersions(remoteVersion, localVersionNormalized)
-
-  if (comparison !== null && comparison <= 0) {
-    try {
-      await result.close()
-    } catch (err) {
-      console.warn('[updater] failed to close stale update resource', err)
-    }
-    return null
-  }
-
-  return result
+  // Auto-update permanently disabled (white-label build).
+  // Always report "no update available" so the update banner/button never
+  // appears and no network request is made to any upstream release source.
+  void options
+  void check
+  void localVersionNormalized
+  return null
 }
 
 export type { CheckOptions }

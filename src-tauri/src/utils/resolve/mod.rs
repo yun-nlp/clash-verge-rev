@@ -136,6 +136,14 @@ pub(super) async fn init_auto_backup() {
 }
 
 async fn init_silent_updater() {
+    // Auto-update permanently disabled (white-label build): never install
+    // cached updates on startup and never start the background check/download
+    // loop. This prevents the app from contacting any upstream release source.
+    logging!(info, Type::Setup, "Silent updater permanently disabled");
+}
+
+#[allow(dead_code)]
+async fn init_silent_updater_disabled() {
     use crate::core::SilentUpdater;
     use crate::core::handle::Handle;
 
