@@ -267,6 +267,24 @@ interface IClashInfo {
   secret?: string
 }
 
+interface IProxyChainNode {
+  name: string
+  provider?: string
+}
+
+interface IProxyChain {
+  group: string
+  nodes: IProxyChainNode[]
+}
+
+interface IGroupPolicy {
+  group: string
+  mode: 'select' | 'fallback' | 'url-test'
+  candidates: string[]
+  disabled: string[]
+  universe?: { name: string; type: string; provider?: string }[]
+}
+
 interface IProfileItem {
   uid: string
   type?: 'local' | 'remote' | 'merge' | 'script'
@@ -275,6 +293,8 @@ interface IProfileItem {
   file?: string
   url?: string
   updated?: number
+  proxy_chains?: IProxyChain[]
+  group_policies?: IGroupPolicy[]
   selected?: {
     name?: string
     now?: string

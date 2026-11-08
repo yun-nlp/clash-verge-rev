@@ -43,6 +43,12 @@ pub struct PrfItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub selected: Option<Vec<PrfSelected>>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proxy_chains: Option<Vec<super::proxy_chain::ProxyChain>>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group_policies: Option<Vec<super::proxy_chain::GroupPolicy>>,
+
     /// subscription user info
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extra: Option<PrfExtra>,
@@ -235,6 +241,8 @@ impl PrfItem {
             file: Some(file),
             url: None,
             selected: None,
+            proxy_chains: None,
+            group_policies: None,
             extra: None,
             option: Some(PrfOption {
                 update_interval,
@@ -425,6 +433,8 @@ impl PrfItem {
             file: Some(file),
             url: Some(url.as_str().into()),
             selected: None,
+            proxy_chains: None,
+            group_policies: None,
             extra,
             option: Some(PrfOption {
                 update_interval,

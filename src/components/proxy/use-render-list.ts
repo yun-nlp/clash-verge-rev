@@ -504,6 +504,7 @@ export const useRenderList = (
     onProxies: refreshProxy,
     onHeadState: setHeadState,
     currentColumns: col,
+    headStates,
   }
 }
 

@@ -19,9 +19,11 @@ interface Props {
   group: IProxyGroupItem
   proxy: IProxyItem
   selected: boolean
+  autoDisabled?: boolean
   showType?: boolean
   sx?: SxProps<Theme>
   onClick?: (name: string) => void
+  onContextMenu?: (event: React.MouseEvent<HTMLElement>) => void
 }
 
 const Widget = styled(Box)(() => ({
@@ -43,7 +45,16 @@ const TypeBox = styled('span')(({ theme }) => ({
 }))
 
 export const ProxyItem = (props: Props) => {
-  const { group, proxy, selected, showType = true, sx, onClick } = props
+  const {
+    group,
+    proxy,
+    selected,
+    autoDisabled,
+    showType = true,
+    sx,
+    onClick,
+    onContextMenu,
+  } = props
 
   // -1/<=0 为不显示，-2 为 loading
   const { delayValue, isPreset, timeout, onDelay } = useProxyDelayState(
@@ -57,6 +68,7 @@ export const ProxyItem = (props: Props) => {
         dense
         selected={selected}
         onClick={() => onClick?.(proxy.name)}
+        onContextMenu={onContextMenu}
         sx={[
           { borderRadius: 1 },
           ({ palette: { mode, primary } }) => {
@@ -97,6 +109,7 @@ export const ProxyItem = (props: Props) => {
                 }}
               >
                 {proxy.name}
+                {autoDisabled && '（自动选择已禁用）'}
                 {showType && proxy.now && ` - ${proxy.now}`}
               </Box>
               {showType && !!proxy.provider && (

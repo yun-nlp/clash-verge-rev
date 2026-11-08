@@ -2,6 +2,7 @@ import {
   ExpandLessRounded,
   ExpandMoreRounded,
   InboxRounded,
+  SettingsRounded,
 } from '@mui/icons-material'
 import {
   alpha,
@@ -12,6 +13,7 @@ import {
   styled,
   Chip,
   Tooltip,
+  IconButton,
 } from '@mui/material'
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +35,16 @@ interface RenderProps {
   onLocation: (group: IRenderItem['group']) => void
   onCheckAll: (groupName: string) => void
   onHeadState: (groupName: string, patch: Partial<HeadState>) => void
+  isNodeDisabled: (group: IProxyGroupItem, proxy: IProxyItem) => boolean
+  onPolicyMenu: (
+    event: React.MouseEvent<HTMLElement>,
+    group: IProxyGroupItem,
+  ) => void
+  onNodeMenu: (
+    event: React.MouseEvent<HTMLElement>,
+    group: IProxyGroupItem,
+    proxy: IProxyItem,
+  ) => void
   onChangeProxy: (
     group: IRenderItem['group'],
     proxy: IRenderItem['proxy'] & { name: string },
@@ -48,7 +60,10 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     onCheckAll,
     onHeadState,
     onChangeProxy,
-    isChainMode: _ = false,
+    onPolicyMenu,
+    onNodeMenu,
+    isNodeDisabled,
+    isChainMode = false,
   } = props
   const { type, group, headState, proxy, proxyCol } = item
   const { verge } = useVerge()
@@ -74,11 +89,27 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         group={group}
         proxy={proxyItem!}
         selected={group.now === proxyItem?.name}
+        autoDisabled={!isChainMode && isNodeDisabled(group, proxyItem!)}
         showType={showType}
         onClick={() => onChangeProxy(group, proxyItem!)}
+        onContextMenu={
+          isChainMode
+            ? undefined
+            : (event) => onNodeMenu(event, group, proxyItem!)
+        }
       />
     ))
-  }, [type, proxyCol, item.key, group, showType, onChangeProxy])
+  }, [
+    type,
+    proxyCol,
+    item.key,
+    group,
+    showType,
+    onChangeProxy,
+    onNodeMenu,
+    isChainMode,
+    isNodeDisabled,
+  ])
 
   if (type === 0) {
     return (
@@ -157,6 +188,21 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
               }}
             />
           </Tooltip>
+          {!isChainMode &&
+            ['Selector', 'Fallback', 'URLTest', 'LoadBalance'].includes(
+              group.type,
+            ) && (
+              <IconButton
+                size="small"
+                title="分组模式与筛选"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onPolicyMenu(event, group)
+                }}
+              >
+                <SettingsRounded fontSize="small" />
+              </IconButton>
+            )}
           {headState?.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
         </Box>
       </ListItemButton>
@@ -183,9 +229,13 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         group={group}
         proxy={proxy!}
         selected={group.now === proxy?.name}
+        autoDisabled={!isChainMode && isNodeDisabled(group, proxy!)}
         showType={headState?.showType}
         sx={{ py: 0, pl: 2 }}
         onClick={() => onChangeProxy(group, proxy!)}
+        onContextMenu={
+          isChainMode ? undefined : (event) => onNodeMenu(event, group, proxy!)
+        }
       />
     )
   }

@@ -148,7 +148,8 @@ export const useProfiles = () => {
         }
 
         if (savedProxy == null) {
-          if (now != null) {
+          // An automatic group's current choice is not a user-selected pin.
+          if (now != null && type !== 'URLTest' && type !== 'Fallback') {
             newSelected.push({ name, now })
           }
           continue
@@ -167,7 +168,9 @@ export const useProfiles = () => {
             `[ActivateSelected] 保存的代理 ${savedProxy} 不存在于代理组 ${name}`,
           )
           hasChange = true
-          newSelected.push({ name, now: now ?? savedProxy })
+          if (type !== 'URLTest' && type !== 'Fallback') {
+            newSelected.push({ name, now: now ?? savedProxy })
+          }
           continue
         }
 

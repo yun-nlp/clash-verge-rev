@@ -28,22 +28,26 @@ import { useLocation } from 'react-router'
 import { delayGroup, healthcheckProxyProvider } from 'tauri-plugin-mihomo-api'
 
 import { BaseEmpty } from '@/components/base'
+import { useProfiles } from '@/hooks/use-profiles'
 import { useProxySelection } from '@/hooks/use-proxy-selection'
 import { useVerge } from '@/hooks/use-verge'
 import { useProxiesData } from '@/providers/app-data-context'
-import { calcuProxies, updateProxyChainConfigInRuntime } from '@/services/cmds'
+import { calcuProxies } from '@/services/cmds'
 import delayManager from '@/services/delay'
+import { showNotice } from '@/services/notice-service'
+import { updateProxySettings } from '@/services/proxy-settings'
 import { useQuery } from '@/services/query-client'
 import { debugLog } from '@/utils/debug'
 
 import { ScrollTopButton } from '../layout/scroll-top-button'
 
-import { ProxyChain } from './proxy-chain'
+import { ProxyChain, type ProxyChainItem } from './proxy-chain'
 import {
   DEFAULT_HOVER_DELAY,
   ProxyGroupNavigator,
 } from './proxy-group-navigator'
 import { ProxyRender } from './proxy-render'
+import { filterSort } from './use-filter-sort'
 import type { HeadState } from './use-head-state'
 import { type IRenderItem, useRenderList } from './use-render-list'
 
@@ -56,20 +60,13 @@ function useStableCallback<T extends (...args: any[]) => any>(fn: T): T {
 interface Props {
   mode: string
   isChainMode?: boolean
-  chainConfigData?: string | null
-}
-
-interface ProxyChainItem {
-  id: string
-  name: string
-  type?: string
-  delay?: number
 }
 
 export const ProxyGroups = (props: Props) => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const { mode, isChainMode = false, chainConfigData } = props
+  const { mode, isChainMode = false } = props
+  const { current, mutateProfiles } = useProfiles()
 
   // Drive 3s polling on the shared TQ cache; data is read via granular context below
   useQuery({
@@ -82,26 +79,19 @@ export const ProxyGroups = (props: Props) => {
     refetchOnReconnect: false,
   })
 
-  const [proxyChain, setProxyChain] = useState<ProxyChainItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('proxy-chain-items')
-      if (saved) {
-        return JSON.parse(saved)
-      }
-    } catch {
-      // ignore
-    }
-    return []
-  })
+  const [proxyChain, setProxyChain] = useState<ProxyChainItem[]>([])
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (proxyChain.length > 0) {
-      localStorage.setItem('proxy-chain-items', JSON.stringify(proxyChain))
-    } else {
-      localStorage.removeItem('proxy-chain-items')
-    }
-  }, [proxyChain])
+  const [policyMenu, setPolicyMenu] = useState<{
+    anchor: HTMLElement
+    group: IProxyGroupItem
+  } | null>(null)
+  const [nodeMenu, setNodeMenu] = useState<{
+    x: number
+    y: number
+    group: IProxyGroupItem
+    proxy: IProxyItem
+  } | null>(null)
+  const [policyBusy, setPolicyBusy] = useState(false)
   const [ruleMenuAnchor, setRuleMenuAnchor] = useState<null | HTMLElement>(null)
   const [duplicateWarning, setDuplicateWarning] = useState<{
     open: boolean
@@ -115,7 +105,10 @@ export const ProxyGroups = (props: Props) => {
     if (!groups) return []
     // 在链式代理模式下，仅显示支持选择节点的代理组
     return isChainMode
-      ? groups.filter((g: any) => g.type === 'Selector' || g.type === 'URLTest')
+      ? groups.filter(
+          (g: any) =>
+            !g.hidden && ['Selector', 'URLTest', 'Fallback'].includes(g.type),
+        )
       : groups
   }, [groups, isChainMode])
 
@@ -127,24 +120,41 @@ export const ProxyGroups = (props: Props) => {
   }, [availableGroups, isChainMode, mode])
 
   const activeSelectedGroup = useMemo(
-    () => selectedGroup ?? defaultRuleGroup,
-    [selectedGroup, defaultRuleGroup],
+    () =>
+      selectedGroup &&
+      availableGroups.some(
+        (group: IProxyGroupItem) => group.name === selectedGroup,
+      )
+        ? selectedGroup
+        : defaultRuleGroup,
+    [selectedGroup, defaultRuleGroup, availableGroups],
   )
 
-  const { renderList, onProxies, onHeadState } = useRenderList(
+  const currentRef = useRef(current)
+  currentRef.current = current
+  useEffect(() => {
+    const saved = currentRef.current?.proxy_chains?.find(
+      (chain) => chain.group === activeSelectedGroup,
+    )
+    // Synchronize the editor when the selected profile or group changes.
+    // eslint-disable-next-line @eslint-react/set-state-in-effect
+    setProxyChain(
+      (saved?.nodes ?? []).map((node, index) => ({
+        ...node,
+        id: `${index}-${node.name}`,
+      })),
+    )
+  }, [activeSelectedGroup, current?.uid])
+
+  const { renderList, onProxies, onHeadState, headStates } = useRenderList(
     mode,
     isChainMode,
     activeSelectedGroup,
   )
 
   const getGroupHeadState = useCallback(
-    (groupName: string) => {
-      const headItem = renderList.find(
-        (item) => item.type === 1 && item.group?.name === groupName,
-      )
-      return headItem?.headState
-    },
-    [renderList],
+    (groupName: string) => headStates[groupName],
+    [headStates],
   )
 
   // 统代理选择
@@ -154,6 +164,7 @@ export const ProxyGroups = (props: Props) => {
     },
     onError: (error) => {
       console.error('代理切换失败', error)
+      showNotice.error(error)
       onProxies()
     },
   })
@@ -338,19 +349,20 @@ export const ProxyGroups = (props: Props) => {
   const handleGroupSelect = (groupName: string) => {
     setSelectedGroup(groupName)
     handleGroupMenuClose()
-
-    if (isChainMode && mode === 'rule') {
-      updateProxyChainConfigInRuntime(null)
-      localStorage.removeItem('proxy-chain-group')
-      localStorage.removeItem('proxy-chain-exit-node')
-      localStorage.removeItem('proxy-chain-items')
-      setProxyChain([])
-    }
   }
 
   const handleChangeProxy = useCallback(
     (group: IProxyGroupItem, proxy: IProxyItem) => {
       if (isChainMode) {
+        if (
+          proxy.all ||
+          ['Direct', 'Reject', 'Pass', 'Compatible'].includes(proxy.type) ||
+          proxy.name.startsWith('__cvr_chain_') ||
+          proxy.name.startsWith('链式 ')
+        ) {
+          showNotice.error('请选择实际代理节点，而不是代理分组或内置节点')
+          return
+        }
         // 使用函数式更新来避免状态延迟问题
         setProxyChain((prev) => {
           // 检查是否已经存在相同名称的代理，防止重复添加
@@ -373,6 +385,7 @@ export const ProxyGroups = (props: Props) => {
             id: `${proxy.name}_${Date.now()}`,
             name: proxy.name,
             type: proxy.type,
+            provider: proxy.provider,
             delay: delay,
           }
 
@@ -483,6 +496,147 @@ export const ProxyGroups = (props: Props) => {
     return Array.from(new Set(names))
   }, [renderList])
 
+  const policyFor = (name: string) =>
+    current?.group_policies?.find((p) => p.group === name)
+  const savedUniverse = (group: IProxyGroupItem) => {
+    const existing = policyFor(group.name)
+    if (existing?.universe?.length) return existing.universe
+    return group.all.map(({ name, type, provider }) => ({
+      name,
+      type,
+      ...(provider ? { provider } : {}),
+    }))
+  }
+  const applyPolicy = async (
+    group: IProxyGroupItem,
+    nextMode?: IGroupPolicy['mode'],
+    disable?: { name: string; value: boolean },
+  ) => {
+    if (!current) {
+      showNotice.error('请先选择配置')
+      return
+    }
+    const old = policyFor(group.name)
+    const universe = savedUniverse(group)
+    const modeValue =
+      nextMode ??
+      old?.mode ??
+      (
+        {
+          Selector: 'select',
+          Fallback: 'fallback',
+          URLTest: 'url-test',
+          LoadBalance: 'select',
+        } as const
+      )[group.type as 'Selector' | 'Fallback' | 'URLTest' | 'LoadBalance']
+    if (!modeValue) {
+      showNotice.error('此分组类型不支持切换')
+      return
+    }
+    const disabled = new Set(old?.disabled ?? [])
+    if (disable)
+      if (disable.value) disabled.add(disable.name)
+      else disabled.delete(disable.name)
+    let candidates = old?.candidates ?? universe.map((item) => item.name)
+    if (!disable) {
+      const head = getGroupHeadState(group.name)
+      const currentNodes = new Map(group.all.map((node) => [node.name, node]))
+      const nodes = universe.map(
+        (item) =>
+          currentNodes.get(item.name) ??
+          proxiesData?.records?.[item.name] ??
+          ({
+            ...item,
+            udp: false,
+            xudp: false,
+            tfo: false,
+            mptcp: false,
+            smux: false,
+            history: [],
+          } as IProxyItem),
+      )
+      candidates = filterSort(
+        nodes,
+        group.name,
+        head?.filterText ?? '',
+        head?.sortType ?? 0,
+        timeout,
+        {
+          matchCase: head?.filterMatchCase,
+          matchWholeWord: head?.filterMatchWholeWord,
+          useRegularExpression: head?.filterUseRegularExpression,
+        },
+      ).map((node) => node.name)
+    }
+    if (
+      !candidates.length ||
+      (modeValue !== 'select' && candidates.every((name) => disabled.has(name)))
+    ) {
+      showNotice.error('没有可用节点，请调整筛选或重新启用节点')
+      return
+    }
+    const policy: IGroupPolicy = {
+      group: group.name,
+      mode: modeValue,
+      universe,
+      candidates,
+      disabled: [...disabled],
+    }
+    setPolicyBusy(true)
+    try {
+      await updateProxySettings(current.uid, (profile) => ({
+        group_policies: [
+          ...(profile.group_policies ?? []).filter(
+            (item) => item.group !== group.name,
+          ),
+          policy,
+        ],
+        selected:
+          nextMode && nextMode !== 'select'
+            ? (profile.selected ?? []).filter(
+                (entry) => entry.name !== group.name,
+              )
+            : (profile.selected ?? []),
+      }))
+      await mutateProfiles()
+      await onProxies()
+      showNotice.success('分组设置已应用')
+    } catch (error) {
+      await mutateProfiles()
+      await onProxies()
+      showNotice.error(error)
+    } finally {
+      setPolicyBusy(false)
+    }
+  }
+
+  const resetPolicy = async (group: IProxyGroupItem) => {
+    if (
+      !current ||
+      !window.confirm(
+        `恢复“${group.name}”的原始分组设置？筛选和禁用记录将被清除。`,
+      )
+    )
+      return
+    setPolicyBusy(true)
+    try {
+      await updateProxySettings(current.uid, (profile) => ({
+        group_policies: (profile.group_policies ?? []).filter(
+          (item) => item.group !== group.name,
+        ),
+      }))
+      await mutateProfiles()
+      await onProxies()
+      showNotice.success('已恢复原始分组设置')
+    } catch (error) {
+      await mutateProfiles()
+      await onProxies()
+      showNotice.error(error)
+    } finally {
+      setPolicyBusy(false)
+    }
+  }
+
   const renderProxyList = (height: string) => (
     <ProxyVirtualList
       parentRef={parentRef}
@@ -498,11 +652,29 @@ export const ProxyGroups = (props: Props) => {
       onCheckAll={handleCheckAll}
       onHeadState={onHeadState}
       onChangeProxy={handleChangeProxy}
+      onPolicyMenu={(event, group) =>
+        setPolicyMenu({ anchor: event.currentTarget, group })
+      }
+      onNodeMenu={(event, group, proxy) => {
+        event.preventDefault()
+        if (['Selector', 'Fallback', 'URLTest'].includes(group.type))
+          setNodeMenu({ x: event.clientX, y: event.clientY, group, proxy })
+      }}
+      isNodeDisabled={(group, proxy) =>
+        policyFor(group.name)?.disabled.includes(proxy.name) ?? false
+      }
     />
   )
 
   if (mode === 'direct') {
     return <BaseEmpty textKey="proxies.page.messages.directMode" />
+  }
+  if (isChainMode && mode !== 'rule') {
+    return (
+      <Alert severity="info">
+        请先切换到规则模式，再为代理分组创建链式节点。
+      </Alert>
+    )
   }
 
   if (isChainMode) {
@@ -534,8 +706,6 @@ export const ProxyGroups = (props: Props) => {
             <ProxyChain
               proxyChain={proxyChain}
               onUpdateChain={setProxyChain}
-              chainConfigData={chainConfigData}
-              mode={mode}
               selectedGroup={activeSelectedGroup}
             />
           </Box>
@@ -584,6 +754,95 @@ export const ProxyGroups = (props: Props) => {
 
       {renderProxyList('calc(100% - 14px)')}
       <ScrollTopButton show={showScrollTop} onClick={scrollToTop} />
+      <Menu
+        anchorEl={policyMenu?.anchor}
+        open={!!policyMenu}
+        onClose={() => setPolicyMenu(null)}
+      >
+        {(
+          [
+            ['select', '手动选择'],
+            ['fallback', '故障转移'],
+            ['url-test', '速度优先'],
+          ] as const
+        ).map(([value, label]) => (
+          <MenuItem
+            key={value}
+            disabled={policyBusy}
+            onClick={() => {
+              const group = policyMenu!.group
+              setPolicyMenu(null)
+              void applyPolicy(group, value)
+            }}
+          >
+            切换为{label}并应用当前筛选
+          </MenuItem>
+        ))}
+        <MenuItem
+          disabled={policyBusy || policyMenu?.group.type === 'LoadBalance'}
+          onClick={() => {
+            const group = policyMenu!.group
+            setPolicyMenu(null)
+            void applyPolicy(group)
+          }}
+        >
+          应用当前筛选
+        </MenuItem>
+        {policyFor(policyMenu?.group.name ?? '') && (
+          <MenuItem
+            disabled={policyBusy}
+            onClick={() => {
+              const group = policyMenu!.group
+              setPolicyMenu(null)
+              void resetPolicy(group)
+            }}
+          >
+            恢复原始分组（清除筛选和禁用）
+          </MenuItem>
+        )}
+        {(policyFor(policyMenu?.group.name ?? '')?.disabled ?? []).map(
+          (name) => (
+            <MenuItem
+              key={name}
+              disabled={policyBusy}
+              onClick={() => {
+                const group = policyMenu!.group
+                setPolicyMenu(null)
+                void applyPolicy(group, undefined, { name, value: false })
+              }}
+            >
+              重新启用：{name}
+            </MenuItem>
+          ),
+        )}
+      </Menu>
+      <Menu
+        anchorReference="anchorPosition"
+        anchorPosition={
+          nodeMenu ? { top: nodeMenu.y, left: nodeMenu.x } : undefined
+        }
+        open={!!nodeMenu}
+        onClose={() => setNodeMenu(null)}
+      >
+        <MenuItem
+          disabled={policyBusy}
+          onClick={() => {
+            const { group, proxy } = nodeMenu!
+            const disabled =
+              policyFor(group.name)?.disabled.includes(proxy.name) ?? false
+            setNodeMenu(null)
+            void applyPolicy(group, undefined, {
+              name: proxy.name,
+              value: !disabled,
+            })
+          }}
+        >
+          {nodeMenu &&
+          policyFor(nodeMenu.group.name)?.disabled.includes(nodeMenu.proxy.name)
+            ? '重新启用自动选择'
+            : '从自动选择中禁用'}
+        </MenuItem>
+      </Menu>
     </div>
   )
 }
@@ -608,6 +867,16 @@ interface ProxyVirtualListProps {
   onLocation: (group: IRenderItem['group']) => void
   onCheckAll: (groupName: string) => void
   onHeadState: (groupName: string, patch: Partial<HeadState>) => void
+  isNodeDisabled: (group: IProxyGroupItem, proxy: IProxyItem) => boolean
+  onPolicyMenu: (
+    event: React.MouseEvent<HTMLElement>,
+    group: IProxyGroupItem,
+  ) => void
+  onNodeMenu: (
+    event: React.MouseEvent<HTMLElement>,
+    group: IProxyGroupItem,
+    proxy: IProxyItem,
+  ) => void
   onChangeProxy: (
     group: IRenderItem['group'],
     proxy: IRenderItem['proxy'] & { name: string },
@@ -773,6 +1042,9 @@ function ProxyVirtualList({
   onCheckAll,
   onHeadState,
   onChangeProxy,
+  onPolicyMenu,
+  onNodeMenu,
+  isNodeDisabled,
 }: ProxyVirtualListProps) {
   const theme = useTheme()
   const stickyBackground =
@@ -814,6 +1086,9 @@ function ProxyVirtualList({
               onCheckAll={onCheckAll}
               onHeadState={onHeadState}
               onChangeProxy={onChangeProxy}
+              onPolicyMenu={onPolicyMenu}
+              onNodeMenu={onNodeMenu}
+              isNodeDisabled={isNodeDisabled}
               isChainMode={isChainMode}
             />
           </div>

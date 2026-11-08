@@ -205,6 +205,33 @@ impl Config {
 
         sanitize_tunnels_proxy(&mut config);
 
+        let profile_settings = {
+            let profiles = Self::profiles().await;
+            let data = profiles.latest_arc();
+            data.current.as_ref().and_then(|id| data.get_item(id).ok()).map(|item| {
+                (
+                    item.proxy_chains.clone().unwrap_or_default(),
+                    item.group_policies.clone().unwrap_or_default(),
+                )
+            })
+        };
+        if let Some((chains, policies)) = profile_settings {
+            for chain in &chains {
+                super::proxy_chain::install(&mut config, chain)
+                    .map_err(|error| anyhow!("Unable to install chain for {}: {}", chain.group, error))?;
+            }
+            for policy in &policies {
+                super::proxy_chain::apply_group_policy(
+                    &mut config,
+                    &policy.group,
+                    policy.mode.clone(),
+                    &policy.candidates,
+                    &policy.disabled,
+                )
+                .map_err(|error| anyhow!("Unable to apply group policy for {}: {}", policy.group, error))?;
+            }
+        }
+
         Self::runtime().await.edit_draft(|d| {
             *d = IRuntime {
                 config: Some(config),

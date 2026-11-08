@@ -156,7 +156,11 @@ export async function calcuProxies(): Promise<{
 
   // compatible with proxy-providers
   const generateItem = (name: string) => {
-    if (proxyRecord[name]) return proxyRecord[name]
+    if (proxyRecord[name]) {
+      return providerMap[name]
+        ? { ...proxyRecord[name], provider: providerMap[name].provider }
+        : proxyRecord[name]
+    }
     if (providerMap[name]) return providerMap[name]
     return {
       name,

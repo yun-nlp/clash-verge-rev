@@ -213,6 +213,8 @@ impl IProfiles {
                 patch!(each, item, file);
                 patch!(each, item, url);
                 patch!(each, item, selected);
+                patch!(each, item, proxy_chains);
+                patch!(each, item, group_policies);
                 patch!(each, item, extra);
                 patch!(each, item, updated);
                 patch!(each, item, option);

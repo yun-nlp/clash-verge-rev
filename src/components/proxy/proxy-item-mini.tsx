@@ -10,13 +10,23 @@ interface Props {
   group: IProxyGroupItem
   proxy: IProxyItem
   selected: boolean
+  autoDisabled?: boolean
   showType?: boolean
   onClick?: (name: string) => void
+  onContextMenu?: (event: React.MouseEvent<HTMLElement>) => void
 }
 
 // 多列布局
 export const ProxyItemMini = (props: Props) => {
-  const { group, proxy, selected, showType = true, onClick } = props
+  const {
+    group,
+    proxy,
+    selected,
+    autoDisabled,
+    showType = true,
+    onClick,
+    onContextMenu,
+  } = props
 
   const { t } = useTranslation()
 
@@ -31,6 +41,7 @@ export const ProxyItemMini = (props: Props) => {
       dense
       selected={selected}
       onClick={() => onClick?.(proxy.name)}
+      onContextMenu={onContextMenu}
       sx={[
         {
           height: 56,
@@ -87,6 +98,7 @@ export const ProxyItemMini = (props: Props) => {
           }}
         >
           {proxy.name}
+          {autoDisabled && '（自动选择已禁用）'}
         </Typography>
 
         {showType && (

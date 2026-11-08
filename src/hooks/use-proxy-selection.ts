@@ -7,7 +7,11 @@ import {
 
 import { useProfiles } from '@/hooks/use-profiles'
 import { useVerge } from '@/hooks/use-verge'
-import { syncTrayProxySelection } from '@/services/cmds'
+import {
+  getProfiles,
+  patchProfile,
+  syncTrayProxySelection,
+} from '@/services/cmds'
 import { debugLog } from '@/utils/debug'
 
 // 缓存连接清理
@@ -42,7 +46,7 @@ interface ProxyChangeRequest {
 
 // 代理选择 Hook
 export const useProxySelection = (options: ProxySelectionOptions = {}) => {
-  const { current, patchCurrent } = useProfiles()
+  const { current, mutateProfiles } = useProfiles()
   const { verge } = useVerge()
   const pendingRequestRef = useRef<ProxyChangeRequest | null>(null)
   const isProcessingRef = useRef(false)
@@ -66,23 +70,21 @@ export const useProxySelection = (options: ProxySelectionOptions = {}) => {
   }, [])
 
   const persistSelection = useCallback(
-    (groupName: string, proxyName: string, skipConfigSave: boolean) => {
+    async (groupName: string, proxyName: string, skipConfigSave: boolean) => {
       if (!current || skipConfigSave) return
-
-      const selected = current.selected ? [...current.selected] : []
-      const index = selected.findIndex((item) => item.name === groupName)
-
-      if (index < 0) {
-        selected.push({ name: groupName, now: proxyName })
-      } else {
-        selected[index] = { name: groupName, now: proxyName }
-      }
-
-      patchCurrent({ selected }).catch((error) => {
-        console.error('[ProxySelection] 保存代理选择失败:', error)
-      })
+      const latest = await getProfiles()
+      if (latest.current !== current.uid)
+        throw new Error('当前配置已切换，节点选择未保存')
+      const profile = latest.items?.find((item) => item.uid === current.uid)
+      if (!profile) throw new Error('当前配置不存在')
+      const selected = (profile.selected ?? []).filter(
+        (item) => item.name !== groupName,
+      )
+      selected.push({ name: groupName, now: proxyName })
+      await patchProfile(current.uid, { selected })
+      await mutateProfiles()
     },
-    [current, patchCurrent],
+    [current, mutateProfiles],
   )
 
   const executeChange = useCallback(
@@ -94,7 +96,7 @@ export const useProxySelection = (options: ProxySelectionOptions = {}) => {
         await selectNodeForGroup(groupName, proxyName)
         onSuccess?.()
         syncTraySelection()
-        persistSelection(groupName, proxyName, skipConfigSave)
+        await persistSelection(groupName, proxyName, skipConfigSave)
         debugLog(
           `[ProxySelection] 代理和状态同步完成: ${groupName} -> ${proxyName}`,
         )

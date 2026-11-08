@@ -53,6 +53,9 @@ jobs:
           pnpm i
           pnpm run prebuild x86_64-pc-windows-msvc
 
+      - name: Test proxy settings transactions
+        run: node scripts/test-proxy-settings.cjs
+
       - name: Disable updater artifacts for unsigned custom build
         shell: pwsh
         run: |

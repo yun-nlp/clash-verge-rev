@@ -4,6 +4,7 @@ mod config;
 mod encrypt;
 mod prfitem;
 pub mod profiles;
+pub mod proxy_chain;
 pub mod runtime;
 mod verge;
 
