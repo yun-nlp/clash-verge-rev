@@ -53,6 +53,55 @@ jobs:
           pnpm i
           pnpm run prebuild x86_64-pc-windows-msvc
 
+      - name: Test and build group-chain configuration generator
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          cargo test --locked --manifest-path scripts/chain-test/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { throw 'Chain configuration tests failed' }
+          cargo build --locked --manifest-path scripts/chain-test/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { throw 'Chain test generator build failed' }
+
+      - name: Set up Go for custom Mihomo cores
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.11'
+          cache: false
+
+      - name: Build patched stable and Alpha Mihomo cores
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = (Get-Location).Path
+          $env:CGO_ENABLED = '0'
+          $env:GOOS = 'windows'
+          $env:GOARCH = 'amd64'
+          $env:GOAMD64 = 'v1'
+          foreach ($core in @(
+            @{ ref = 'v1.19.33'; output = 'verge-mihomo-x86_64-pc-windows-msvc.exe'; version = 'v1.19.33-group-chain' },
+            @{ ref = '0455d0d28c4526937380505153e65a843d8612e8'; output = 'verge-mihomo-alpha-x86_64-pc-windows-msvc.exe'; version = 'alpha-0455d0d-group-chain' }
+          )) {
+            $dir = Join-Path $env:RUNNER_TEMP $core.output
+            git init $dir
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to initialize Mihomo checkout' }
+            git -C $dir config core.autocrlf false
+            git -C $dir fetch --depth 1 https://github.com/MetaCubeX/mihomo.git $core.ref
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to fetch Mihomo revision' }
+            git -C $dir checkout --detach FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to check out Mihomo revision' }
+            git -C $dir apply "$root/patches/mihomo-group-chain.patch"
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to apply Mihomo group-chain patch' }
+            Push-Location $dir
+            try {
+              go test ./adapter/outboundgroup
+              if ($LASTEXITCODE -ne 0) { throw 'Mihomo group-chain tests failed' }
+              go build -tags with_gvisor -trimpath -ldflags "-s -w -X github.com/metacubex/mihomo/constant.Version=$($core.version)" -o "$root/src-tauri/sidecar/$($core.output)" .
+              if ($LASTEXITCODE -ne 0) { throw 'Mihomo core build failed' }
+            } finally { Pop-Location }
+            python "$root/scripts/test-group-chain.py" "$root/src-tauri/sidecar/$($core.output)" "$root/scripts/chain-test/target/debug/group-chain-config-test.exe"
+            if ($LASTEXITCODE -ne 0) { throw 'Mihomo dynamic group-chain integration test failed' }
+          }
+
       - name: Test proxy settings transactions
         run: node scripts/test-proxy-settings.cjs
 

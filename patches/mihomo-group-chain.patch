@@ -1,0 +1,114 @@
+diff --git a/adapter/outboundgroup/chain_mirror.go b/adapter/outboundgroup/chain_mirror.go
+new file mode 100644
+index 0000000..4fa75c3
+--- /dev/null
++++ b/adapter/outboundgroup/chain_mirror.go
+@@ -0,0 +1,72 @@
++package outboundgroup
++
++import (
++	"context"
++	"encoding/json"
++	C "github.com/metacubex/mihomo/constant"
++	P "github.com/metacubex/mihomo/constant/provider"
++)
++
++// ChainMirror resolves the source group on every connection. The prefixed
++// copies have their dialer-proxy bound to the preceding hop; source is untouched.
++type ChainMirror struct {
++	*GroupBase
++	source, direct C.Proxy
++	prefix         string
++}
++
++func NewChainMirror(option GroupCommonOption, fallback C.Proxy, providers []P.ProxyProvider, source, direct C.Proxy, prefix string) *ChainMirror {
++	return &ChainMirror{GroupBase: NewGroupBase(GroupBaseOption{Name: option.Name, Type: C.Relay, Hidden: option.Hidden, EmptyFallback: fallback, Providers: providers}), source: source, direct: direct, prefix: prefix}
++}
++
++func (m *ChainMirror) selected(metadata *C.Metadata, touch bool) C.Proxy {
++	p := m.source
++	seen := map[string]bool{}
++	for i := 0; i < 64; i++ {
++		if p == nil || seen[p.Name()] {
++			return m.EmptyFallback()
++		}
++		seen[p.Name()] = true
++		if _, group := p.Adapter().(ProxyGroup); group {
++			p = p.Unwrap(metadata, touch)
++			continue
++		}
++		switch p.Type() {
++		case C.Direct, C.Compatible:
++			return m.direct
++		case C.Reject, C.RejectDrop:
++			return m.EmptyFallback()
++		}
++		for _, copy := range m.GetProxies(touch) {
++			if copy.Name() == m.prefix+p.Name() {
++				return copy
++			}
++		}
++		return m.EmptyFallback()
++	}
++	return m.EmptyFallback()
++}
++func (m *ChainMirror) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, error) {
++	c, err := m.selected(metadata, true).DialContext(ctx, metadata)
++	if err == nil {
++		c.AppendToChains(m)
++	}
++	return c, err
++}
++func (m *ChainMirror) ListenPacketContext(ctx context.Context, metadata *C.Metadata) (C.PacketConn, error) {
++	c, err := m.selected(metadata, true).ListenPacketContext(ctx, metadata)
++	if err == nil {
++		c.AppendToChains(m)
++	}
++	return c, err
++}
++func (m *ChainMirror) SupportUDP() bool { return m.source.SupportUDP() && m.direct.SupportUDP() }
++func (m *ChainMirror) IsL3Protocol(metadata *C.Metadata) bool {
++	return m.selected(metadata, false).IsL3Protocol(metadata)
++}
++func (m *ChainMirror) Providers() []P.ProxyProvider { return m.providers }
++func (m *ChainMirror) Proxies() []C.Proxy           { return m.GetProxies(false) }
++func (m *ChainMirror) Now() string                  { return m.source.Name() }
++func (m *ChainMirror) MarshalJSON() ([]byte, error) {
++	return json.Marshal(map[string]any{"type": m.Type().String(), "now": m.Now(), "all": []string{m.source.Name()}, "hidden": m.Hidden()})
++}
+diff --git a/adapter/outboundgroup/parser.go b/adapter/outboundgroup/parser.go
+index e97f8da..2bf5bb9 100644
+--- a/adapter/outboundgroup/parser.go
++++ b/adapter/outboundgroup/parser.go
+@@ -167,7 +167,7 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
+ 		}
+ 
+ 		// select don't need auto health check
+-		if groupOption.Type != "select" && groupOption.Type != "relay" {
++		if groupOption.Type != "select" && groupOption.Type != "relay" && groupOption.Type != "chain-mirror" {
+ 			if groupOption.Interval == 0 {
+ 				groupOption.Interval = 300
+ 			}
+@@ -213,6 +213,22 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
+ 			return nil, err
+ 		}
+ 		return NewLoadBalance(groupOption, opt, emptyFallback, providers)
++	case "chain-mirror":
++		sourceName, _ := config["mirror-source"].(string)
++		prefix, _ := config["mirror-prefix"].(string)
++		directName, _ := config["mirror-direct"].(string)
++		source, ok := proxyMap[sourceName]
++		if !ok {
++			return nil, fmt.Errorf("%s: mirror source not found", groupName)
++		}
++		direct, ok := proxyMap[directName]
++		if !ok {
++			return nil, fmt.Errorf("%s: mirror previous hop not found", groupName)
++		}
++		if _, ok := source.Adapter().(ProxyGroup); !ok || prefix == "" {
++			return nil, fmt.Errorf("%s: invalid mirror source or prefix", groupName)
++		}
++		return NewChainMirror(groupOption, emptyFallback, providers, source, direct, prefix), nil
+ 	case "relay":
+ 		return nil, fmt.Errorf("%w: The group [%s] with relay type was removed, please using dialer-proxy instead", errType, groupName)
+ 	default:

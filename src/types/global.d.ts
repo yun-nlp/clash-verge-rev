@@ -270,6 +270,7 @@ interface IClashInfo {
 interface IProxyChainNode {
   name: string
   provider?: string
+  group?: boolean
 }
 
 interface IProxyChain {

@@ -43,9 +43,10 @@ export function ProxyChain({
     if (!current || !selectedGroup || proxyChain.length < 2) return
     const chain: IProxyChain = {
       group: selectedGroup,
-      nodes: proxyChain.map(({ name, provider }) => ({
+      nodes: proxyChain.map(({ name, provider, group }) => ({
         name,
         ...(provider ? { provider } : {}),
+        ...(group ? { group: true } : {}),
       })),
     }
     const name = chainName(chain)

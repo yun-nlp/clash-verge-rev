@@ -1,2 +1,5 @@
 .github/workflows/*.lock.yml linguist-generated=true merge=ours
 Changelog.md merge=union
+
+# Preserve patch bytes when applying to Mihomo on Windows
+patches/*.patch text eol=lf

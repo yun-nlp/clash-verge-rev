@@ -7,6 +7,8 @@ pub struct ChainNode {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provider: Option<String>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub group: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -29,6 +31,10 @@ impl ProxyChain {
     }
 }
 
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
 fn str_key(s: &str) -> Value {
     Value::String(s.to_string())
 }
@@ -43,6 +49,66 @@ fn as_map<'a>(v: &'a Value, message: &str) -> Result<&'a Mapping, String> {
 }
 fn regex_literal(s: &str) -> String {
     regex::escape(s).replace('`', r"\x60")
+}
+
+// Enumerate possible leaves, not the current selection: the core resolves that
+// selection for every connection, including nested/automatic groups.
+fn collect_group_leaves(
+    name: &str,
+    target: &str,
+    groups: &[Value],
+    originals: &[Value],
+    providers: &Mapping,
+    seen: &mut HashSet<String>,
+    nodes: &mut HashSet<String>,
+    uses: &mut HashSet<String>,
+) -> Result<(), String> {
+    if name == target {
+        return Err("A chain group cannot contain its target group (cycle)".into());
+    }
+    if !seen.insert(name.to_owned()) {
+        return Ok(());
+    }
+    let group = groups
+        .iter()
+        .find(|g| g.get("name").and_then(Value::as_str) == Some(name))
+        .ok_or_else(|| format!("Group not found: {name}"))?;
+    if !matches!(
+        group.get("type").and_then(Value::as_str),
+        Some("select" | "fallback" | "url-test" | "load-balance")
+    ) {
+        return Err(format!("Unsupported chain group: {name}"));
+    }
+    let all = group.get("include-all").and_then(Value::as_bool) == Some(true);
+    if all || group.get("include-all-proxies").and_then(Value::as_bool) == Some(true) {
+        nodes.extend(
+            originals
+                .iter()
+                .filter_map(|p| p.get("name").and_then(Value::as_str).map(str::to_owned)),
+        );
+    }
+    if all || group.get("include-all-providers").and_then(Value::as_bool) == Some(true) {
+        uses.extend(providers.keys().filter_map(Value::as_str).map(str::to_owned));
+    }
+    if let Some(entries) = group.get("use").and_then(Value::as_sequence) {
+        uses.extend(entries.iter().filter_map(Value::as_str).map(str::to_owned));
+    }
+    if let Some(entries) = group.get("proxies").and_then(Value::as_sequence) {
+        for child in entries.iter().filter_map(Value::as_str) {
+            if groups
+                .iter()
+                .any(|g| g.get("name").and_then(Value::as_str) == Some(child))
+            {
+                collect_group_leaves(child, target, groups, originals, providers, seen, nodes, uses)?;
+            } else if originals
+                .iter()
+                .any(|p| p.get("name").and_then(Value::as_str) == Some(child))
+            {
+                nodes.insert(child.to_owned());
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Construct a chain from independent outbound copies. Existing nodes stay untouched.
@@ -107,6 +173,23 @@ fn install_inner(config: &mut Mapping, chain: &ProxyChain) -> Result<String, Str
     let mut previous: Option<String> = None;
     for (idx, node) in chain.nodes.iter().enumerate() {
         let last = idx + 1 == chain.nodes.len();
+        if node.group && node.provider.is_some() {
+            return Err("A group cannot have a provider".into());
+        }
+        if node.group && previous.is_none() {
+            collect_group_leaves(
+                &node.name,
+                &chain.group,
+                groups,
+                &originals,
+                &providers,
+                &mut HashSet::new(),
+                &mut HashSet::new(),
+                &mut HashSet::new(),
+            )?;
+            previous = Some(node.name.clone());
+            continue;
+        }
         let internal = format!("__cvr_chain_{id}_{idx}");
         let name = if last { final_name.clone() } else { internal.clone() };
         if !occupied.insert(name.clone()) {
@@ -115,7 +198,90 @@ fn install_inner(config: &mut Mapping, chain: &ProxyChain) -> Result<String, Str
         if !last {
             hidden_names.push(name.clone());
         }
-        if let Some(provider_name) = &node.provider {
+        if node.group {
+            let mut leaves = HashSet::new();
+            let mut uses = HashSet::new();
+            collect_group_leaves(
+                &node.name,
+                &chain.group,
+                groups,
+                &originals,
+                &providers,
+                &mut HashSet::new(),
+                &mut leaves,
+                &mut uses,
+            )?;
+            let prefix = format!("{internal}__");
+            let prev = previous.as_ref().ok_or("Missing previous hop")?;
+            let mut members = vec![value_str(&node.name), value_str(prev), value_str("REJECT")];
+            // A node may appear in several nested groups; copy each once.
+            let mut leaves: Vec<_> = leaves.into_iter().collect();
+            leaves.sort();
+            for leaf in leaves {
+                let source = originals
+                    .iter()
+                    .find(|p| p.get("name").and_then(Value::as_str) == Some(&leaf))
+                    .ok_or("Missing source node")?;
+                let mut copy = as_map(source, "Invalid source node")?.clone();
+                let copy_name = format!("{prefix}{leaf}");
+                if !occupied.insert(copy_name.clone()) {
+                    return Err(format!("Duplicate chain node: {copy_name}"));
+                }
+                copy.insert(str_key("name"), value_str(&copy_name));
+                copy.insert(str_key("dialer-proxy"), value_str(prev));
+                copies.push(Value::Mapping(copy));
+                members.push(value_str(copy_name));
+            }
+            let mut provider_ids = vec![];
+            let mut uses: Vec<_> = uses.into_iter().collect();
+            uses.sort();
+            for (pidx, provider_name) in uses.iter().enumerate() {
+                let mut provider = as_map(
+                    providers
+                        .get(provider_name)
+                        .ok_or_else(|| format!("Provider not found: {provider_name}"))?,
+                    "Invalid provider",
+                )?
+                .clone();
+                let provider_id = format!("{internal}_provider_{pidx}");
+                if !occupied.insert(provider_id.clone()) {
+                    return Err("Duplicate chain provider".into());
+                }
+                if provider.get("type").and_then(Value::as_str) == Some("http") {
+                    provider.insert(
+                        str_key("path"),
+                        value_str(format!("./proxy_providers/{provider_id}.yaml")),
+                    );
+                }
+                let overrides = provider
+                    .entry(str_key("override"))
+                    .or_insert_with(|| Value::Mapping(Mapping::new()))
+                    .as_mapping_mut()
+                    .ok_or("Invalid provider override")?;
+                if overrides.contains_key("override-expr") {
+                    return Err("Provider override-expr is not supported for chains".into());
+                }
+                let old_prefix = overrides.get("additional-prefix").and_then(Value::as_str).unwrap_or("");
+                overrides.insert(str_key("additional-prefix"), value_str(format!("{prefix}{old_prefix}")));
+                overrides.insert(str_key("dialer-proxy"), value_str(prev));
+                new_providers.push((str_key(&provider_id), Value::Mapping(provider)));
+                provider_ids.push(value_str(provider_id));
+            }
+            let mut mirror = Mapping::new();
+            mirror.insert(str_key("name"), value_str(&name));
+            mirror.insert(str_key("type"), value_str("chain-mirror"));
+            mirror.insert(str_key("hidden"), true.into());
+            mirror.insert(str_key("mirror-source"), value_str(&node.name));
+            mirror.insert(str_key("mirror-prefix"), value_str(&prefix));
+            mirror.insert(str_key("mirror-direct"), value_str(prev));
+            mirror.insert(str_key("empty-fallback"), value_str("REJECT"));
+            mirror.insert(str_key("proxies"), Value::Sequence(members));
+            if !provider_ids.is_empty() {
+                mirror.insert(str_key("use"), Value::Sequence(provider_ids));
+            }
+            new_groups.push(Value::Mapping(mirror));
+            hidden_prefixes.push(prefix);
+        } else if let Some(provider_name) = &node.provider {
             let mut provider = as_map(
                 providers
                     .get(provider_name)
@@ -410,7 +576,57 @@ mod tests {
         ChainNode {
             name: name.into(),
             provider: provider.map(str::to_owned),
+            group: false,
         }
+    }
+    fn group(name: &str) -> ChainNode {
+        ChainNode {
+            name: name.into(),
+            provider: None,
+            group: true,
+        }
+    }
+    #[test]
+    fn group_chain_mirrors_all_possible_leaves_and_preserves_source_groups() {
+        let mut cfg: Mapping = serde_yaml_ng::from_str("proxies: [{name: A1, type: socks5}, {name: B1, type: socks5}, {name: B2, type: socks5}]\nproxy-groups: [{name: Rule, type: select, proxies: [A, B]}, {name: A, type: select, proxies: [A1]}, {name: B, type: select, proxies: [Nested, B2]}, {name: Nested, type: select, proxies: [B1]}]").unwrap();
+        let before = cfg.clone();
+        let name = install(
+            &mut cfg,
+            &ProxyChain {
+                group: "Rule".into(),
+                nodes: vec![group("A"), group("B")],
+            },
+        )
+        .unwrap();
+        for idx in 1..4 {
+            assert_eq!(cfg["proxy-groups"][idx], before["proxy-groups"][idx]);
+        }
+        let mirror = cfg["proxy-groups"].as_sequence().unwrap().last().unwrap();
+        assert_eq!(mirror["type"].as_str(), Some("chain-mirror"));
+        assert_eq!(mirror["mirror-source"].as_str(), Some("B"));
+        assert_eq!(mirror["mirror-direct"].as_str(), Some("A"));
+        assert_eq!(mirror["name"].as_str(), Some(name.as_str()));
+        for leaf in ["B1", "B2"] {
+            assert!(cfg["proxies"].as_sequence().unwrap().iter().any(|p| p["name"]
+                .as_str()
+                .unwrap()
+                .ends_with(&format!("__{leaf}"))
+                && p["dialer-proxy"].as_str() == Some("A")));
+        }
+    }
+    #[test]
+    fn group_chain_rejects_target_cycles_without_modification() {
+        let mut cfg: Mapping = serde_yaml_ng::from_str("proxies: [{name: P, type: socks5}]\nproxy-groups: [{name: Rule, type: select, proxies: [A, B]}, {name: A, type: select, proxies: [P]}, {name: B, type: select, proxies: [Rule]}]").unwrap();
+        let before = cfg.clone();
+        assert!(install(
+            &mut cfg,
+            &ProxyChain {
+                group: "Rule".into(),
+                nodes: vec![group("A"), group("B")]
+            }
+        )
+        .is_err());
+        assert_eq!(cfg, before);
     }
     #[test]
     fn static_chain_isolated() {

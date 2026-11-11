@@ -355,12 +355,11 @@ export const ProxyGroups = (props: Props) => {
     (group: IProxyGroupItem, proxy: IProxyItem) => {
       if (isChainMode) {
         if (
-          proxy.all ||
           ['Direct', 'Reject', 'Pass', 'Compatible'].includes(proxy.type) ||
           proxy.name.startsWith('__cvr_chain_') ||
           proxy.name.startsWith('链式 ')
         ) {
-          showNotice.error('请选择实际代理节点，而不是代理分组或内置节点')
+          showNotice.error('请选择代理节点或代理分组，不支持内置节点')
           return
         }
         // 使用函数式更新来避免状态延迟问题
@@ -381,11 +380,13 @@ export const ProxyGroups = (props: Props) => {
               ? proxy.history[proxy.history.length - 1].delay
               : undefined
 
+          const isGroup = ['Selector', 'URLTest', 'Fallback', 'LoadBalance'].includes(proxy.type)
           const chainItem: ProxyChainItem = {
             id: `${proxy.name}_${Date.now()}`,
             name: proxy.name,
             type: proxy.type,
-            provider: proxy.provider,
+            provider: isGroup ? undefined : proxy.provider,
+            group: isGroup,
             delay: delay,
           }
 
