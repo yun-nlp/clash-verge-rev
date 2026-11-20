@@ -410,7 +410,7 @@
         "autoCloseConnections": "當代理組選中節點或代理模式變動時，關閉已建立的連線",
         "enableBuiltinEnhanced": "配置檔案的相容性處理",
         "autoDelayDetection": "在背景定時偵測目前節點延遲",
-        "defaultLatencyTest": "用於手動測速及速度優先分組；分組單獨設定的網址優先"
+        "defaultLatencyTest": "用於手動測速、速度優先及故障轉移分組；分組單獨設定的網址優先"
       },
       "options": {
         "proxyLayoutColumns": {

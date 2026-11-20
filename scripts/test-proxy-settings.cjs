@@ -151,6 +151,7 @@ async function testCase(opts = {}) {
   assert.throws(() => x.validate('not a url'), /HTTP/)
   const oldState = JSON.stringify({ p: { A: { testUrl: 'https://a.test' }, B: { testUrl: 'https://b.test' }, C: { testUrl: 'bad' } } })
   assert.deepEqual(JSON.parse(JSON.stringify(x.migrate(oldState, 'p', [{name:'A',type:'URLTest'}, {name:'B',type:'URLTest'}, {name:'C',type:'URLTest'}], { B: 'https://keep.test' }))), { A: 'https://a.test' })
+  assert.deepEqual(JSON.parse(JSON.stringify(x.migrate(oldState, 'p', [{name:'A',type:'Fallback'}, {name:'B',type:'Selector'}], {}))), { A: 'https://a.test' })
   assert.deepEqual(JSON.parse(JSON.stringify(x.migrate('broken', 'p', [], {}))), {})
 
   x = await testCase({ switched: true })

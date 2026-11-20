@@ -95,7 +95,7 @@ export function legacyGroupTestUrls(
     const saved = JSON.parse(raw ?? '{}')?.[uid] ?? {}
     const result: Record<string, string> = {}
     for (const group of groups) {
-      if (group.type !== 'URLTest' || Object.hasOwn(existing, group.name)) continue
+      if (!['URLTest', 'Fallback'].includes(group.type) || Object.hasOwn(existing, group.name)) continue
       const value = saved[group.name]?.testUrl
       if (typeof value !== 'string') continue
       try {

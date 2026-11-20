@@ -569,7 +569,7 @@ pub fn apply_group_policy(
     Ok(())
 }
 
-/// Explicit UI URLs override subscription URLs for automatic URL-test groups.
+/// UI URLs override subscription URLs for automatic URL-test and fallback groups.
 /// Missing/renamed groups are ignored, so subscription updates cannot break startup.
 pub fn apply_test_urls(
     config: &mut Mapping,
@@ -580,7 +580,7 @@ pub fn apply_test_urls(
         return;
     };
     for group in groups.iter_mut().filter_map(Value::as_mapping_mut) {
-        if group.get("type").and_then(Value::as_str) != Some("url-test") {
+        if !matches!(group.get("type").and_then(Value::as_str), Some("url-test" | "fallback")) {
             continue;
         }
         let Some(name) = group.get("name").and_then(Value::as_str) else {
@@ -662,11 +662,12 @@ mod tests {
         assert_eq!(cfg, before);
     }
     #[test]
-    fn user_test_urls_override_config_only_for_urltest_groups() {
-        let mut cfg: Mapping = serde_yaml_ng::from_str("proxy-groups: [{name: A, type: url-test, url: 'https://original.test'}, {name: B, type: url-test, url: 'https://original.test'}, {name: C, type: select, url: 'https://original.test'}, {name: D, type: fallback}]").unwrap();
+    fn user_test_urls_override_urltest_and_fallback_groups_only() {
+        let mut cfg: Mapping = serde_yaml_ng::from_str("proxy-groups: [{name: A, type: url-test, url: 'https://original.test'}, {name: B, type: url-test, url: 'https://original.test'}, {name: C, type: select, url: 'https://original.test'}, {name: D, type: fallback}, {name: E, type: fallback, interval: 42}]").unwrap();
         let urls = [
             ("A".to_string(), "https://group.test".to_string()),
             ("C".to_string(), "https://ignored.test".to_string()),
+            ("E".to_string(), "https://fallback.test".to_string()),
         ]
         .into_iter()
         .collect();
@@ -675,7 +676,10 @@ mod tests {
         assert_eq!(cfg["proxy-groups"][1]["url"], "https://global.test");
         assert_eq!(cfg["proxy-groups"][0]["interval"].as_i64(), Some(300));
         assert_eq!(cfg["proxy-groups"][2]["url"], "https://original.test");
-        assert!(cfg["proxy-groups"][3].get("url").is_none());
+        assert_eq!(cfg["proxy-groups"][3]["url"], "https://global.test");
+        assert_eq!(cfg["proxy-groups"][3]["interval"].as_i64(), Some(300));
+        assert_eq!(cfg["proxy-groups"][4]["url"], "https://fallback.test");
+        assert_eq!(cfg["proxy-groups"][4]["interval"].as_i64(), Some(42));
         let mut original: Mapping =
             serde_yaml_ng::from_str("proxy-groups: [{name: A, type: url-test, url: 'https://original.test'}]").unwrap();
         apply_test_urls(&mut original, None, &Default::default());

@@ -594,7 +594,7 @@ export const ProxyGroups = (props: Props) => {
       return
     }
     let headTestUrl = ''
-    if (nextMode === 'url-test') {
+    if (nextMode === 'url-test' || nextMode === 'fallback') {
       try {
         headTestUrl = validateLatencyUrl(getGroupHeadState(group.name)?.testUrl ?? '')
       } catch (error) {

@@ -90,7 +90,7 @@ export const ProxyHead = ({
       })
       await mutateProfiles()
       await refreshProxy()
-      showNotice.success(next ? '测速链接已应用；速度优先分组将使用该链接' : '已清除分组测速链接')
+      showNotice.success(next ? '测速链接已应用；速度优先和故障转移分组将使用该链接' : '已清除分组测速链接')
     } catch (error) {
       onHeadState({ testUrl: savedTestUrl ?? '' })
       await mutateProfiles()

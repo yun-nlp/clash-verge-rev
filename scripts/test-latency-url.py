@@ -21,6 +21,8 @@ class Socks(socketserver.BaseRequestHandler):
             elif atyp==3: host=exact(c,exact(c,1)[0]).decode()
             else: raise ValueError('address type')
             port=int.from_bytes(exact(c,2),'big')
+            if getattr(self.server, 'fail_port', None) == port:
+                c.sendall(b'\x05\x05\x00\x01\x00\x00\x00\x00\x00\x00'); return
             if (self.server.label=='A' and port==self.server.slow_for_a) or (self.server.label=='B' and port==self.server.slow_for_b): time.sleep(.4)
             with socket.create_connection((host,port),timeout=5) as remote:
                 c.sendall(b'\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00')
@@ -56,7 +58,7 @@ def call(port,method,path,body=None):
     if r.status not in (200,204): raise RuntimeError((r.status,data))
     return json.loads(data) if data else None
 
-def run_case(core, generator, provider_case):
+def run_case(core, generator, provider_case, group_type):
     t1,t2=server(Http,'test1'),server(Http,'test2'); a,b=server(Socks,'A'),server(Socks,'B')
     for s in (a,b):
         s.slow_for_a=(t1 if provider_case else t2).server_address[1]
@@ -64,6 +66,7 @@ def run_case(core, generator, provider_case):
     url1=f'http://127.0.0.1:{t1.server_address[1]}/generate_204'
     url2=f'http://127.0.0.1:{t2.server_address[1]}/generate_204'
     port=free_port()
+    if group_type == 'fallback': a.fail_port=t2.server_address[1]
     base=f'''mixed-port: {free_port()}
 external-controller: 127.0.0.1:{port}
 mode: rule
@@ -72,13 +75,13 @@ proxies:
   - {{name: A, type: socks5, server: 127.0.0.1, port: {a.server_address[1]}}}
   - {{name: B, type: socks5, server: 127.0.0.1, port: {b.server_address[1]}}}
 proxy-groups:
-  - {{name: G, type: url-test, url: 'http://127.0.0.1:9/old', interval: 1, lazy: false, tolerance: 0, proxies: [A, B]}}
+  - {{name: G, type: {group_type}, url: 'http://127.0.0.1:9/old', interval: 1, lazy: false, tolerance: 0, proxies: [A, B]}}
 rules: ["MATCH,G"]
 '''
     if provider_case:
         base=base.replace(f"proxies:\n  - {{name: A, type: socks5, server: 127.0.0.1, port: {a.server_address[1]}}}\n  - {{name: B, type: socks5, server: 127.0.0.1, port: {b.server_address[1]}}}\n", f"proxy-providers:\n  nodes:\n    type: inline\n    health-check: {{enable: false, url: '{url1}'}}\n    payload:\n      - {{name: A, type: socks5, server: 127.0.0.1, port: {a.server_address[1]}}}\n      - {{name: B, type: socks5, server: 127.0.0.1, port: {b.server_address[1]}}}\n")
         base=base.replace('interval: 1, lazy: false, tolerance: 0, proxies: [A, B]', 'lazy: false, tolerance: 0, use: [nodes]')
-    first,second=('B','A') if provider_case else ('A','B')
+    first,second=('A','B') if group_type == 'fallback' else (('B','A') if provider_case else ('A','B'))
     def generated(global_url, group_url):
         return subprocess.run([generator,'--url-test',global_url,group_url],input=base,text=True,encoding='utf-8',capture_output=True,check=True).stdout
     def check(expected_url, expected_node):
@@ -112,7 +115,8 @@ rules: ["MATCH,G"]
             for s in (a,b,t1,t2): s.shutdown(); s.server_close()
 def main():
     core=str(Path(sys.argv[1]).resolve()); generator=str(Path(sys.argv[2]).resolve())
-    for provider_case in (False,True):
-        print('Testing', 'provider (health check initially disabled)' if provider_case else 'static', flush=True)
-        run_case(core,generator,provider_case)
+    for group_type in ('url-test','fallback'):
+        for provider_case in (False,True):
+            print('Testing', group_type, 'provider (health check initially disabled)' if provider_case else 'static', flush=True)
+            run_case(core,generator,provider_case,group_type)
 if __name__=='__main__': main()
