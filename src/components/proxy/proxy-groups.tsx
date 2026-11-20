@@ -35,7 +35,7 @@ import { useProxiesData } from '@/providers/app-data-context'
 import { calcuProxies } from '@/services/cmds'
 import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'
-import { updateProxySettings, validateLatencyUrl } from '@/services/proxy-settings'
+import { updateProxySettings, validateLatencyUrl, legacyGroupTestUrls } from '@/services/proxy-settings'
 import { useQuery } from '@/services/query-client'
 import { debugLog } from '@/utils/debug'
 
@@ -151,6 +151,23 @@ export const ProxyGroups = (props: Props) => {
     isChainMode,
     activeSelectedGroup,
   )
+
+  const migratedProfileRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!current?.uid || !groups?.length || migratedProfileRef.current === current.uid) return
+    const uid = current.uid
+    migratedProfileRef.current = uid
+    const previous = legacyGroupTestUrls(
+      localStorage.getItem('proxy-head-state'), uid, groups, current.group_test_urls ?? {},
+    )
+    if (!Object.keys(previous).length) return
+    void updateProxySettings(uid, (profile) => ({
+      group_test_urls: { ...previous, ...(profile.group_test_urls ?? {}) },
+    })).then(async () => {
+      await mutateProfiles()
+      await onProxies()
+    }).catch((error) => showNotice.error(error))
+  }, [current, groups, mutateProfiles, onProxies])
 
   const getGroupHeadState = useCallback(
     (groupName: string) => headStates[groupName],

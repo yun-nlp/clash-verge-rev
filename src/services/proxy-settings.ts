@@ -85,3 +85,24 @@ export function validateLatencyUrl(value: string): string {
     throw new Error('请输入有效的 HTTP 或 HTTPS 测速链接')
   return trimmed
 }
+
+// Import pre-existing per-group UI values once, without overwriting saved overrides.
+export function legacyGroupTestUrls(
+  raw: string | null, uid: string, groups: { name: string; type: string }[],
+  existing: Record<string, string>,
+): Record<string, string> {
+  try {
+    const saved = JSON.parse(raw ?? '{}')?.[uid] ?? {}
+    const result: Record<string, string> = {}
+    for (const group of groups) {
+      if (group.type !== 'URLTest' || Object.hasOwn(existing, group.name)) continue
+      const value = saved[group.name]?.testUrl
+      if (typeof value !== 'string') continue
+      try {
+        const url = validateLatencyUrl(value)
+        if (url) result[group.name] = url
+      } catch { /* Leave an invalid old manual-test value unapplied. */ }
+    }
+    return result
+  } catch { return {} }
+}

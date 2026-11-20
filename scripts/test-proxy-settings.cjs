@@ -66,6 +66,7 @@ async function testCase(opts = {}) {
     calls,
     getReload: () => reload,
     validate: exports.validateLatencyUrl,
+    migrate: exports.legacyGroupTestUrls,
   }
 }
 ;(async () => {
@@ -148,6 +149,10 @@ async function testCase(opts = {}) {
   assert.equal(x.validate('  '), '')
   assert.throws(() => x.validate('ftp://example.com'), /HTTP/)
   assert.throws(() => x.validate('not a url'), /HTTP/)
+  const oldState = JSON.stringify({ p: { A: { testUrl: 'https://a.test' }, B: { testUrl: 'https://b.test' }, C: { testUrl: 'bad' } } })
+  assert.deepEqual(JSON.parse(JSON.stringify(x.migrate(oldState, 'p', [{name:'A',type:'URLTest'}, {name:'B',type:'URLTest'}, {name:'C',type:'URLTest'}], { B: 'https://keep.test' }))), { A: 'https://a.test' })
+  assert.deepEqual(JSON.parse(JSON.stringify(x.migrate('broken', 'p', [], {}))), {})
+
   x = await testCase({ switched: true })
   await assert.rejects(
     x.run('p', () => ({ proxy_chains: [] })),
