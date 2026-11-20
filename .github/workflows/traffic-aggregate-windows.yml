@@ -100,6 +100,8 @@ jobs:
             } finally { Pop-Location }
             python "$root/scripts/test-group-chain.py" "$root/src-tauri/sidecar/$($core.output)" "$root/scripts/chain-test/target/debug/group-chain-config-test.exe"
             if ($LASTEXITCODE -ne 0) { throw 'Mihomo dynamic group-chain integration test failed' }
+            python "$root/scripts/test-latency-url.py" "$root/src-tauri/sidecar/$($core.output)" "$root/scripts/chain-test/target/debug/group-chain-config-test.exe"
+            if ($LASTEXITCODE -ne 0) { throw 'Mihomo latency URL selection test failed' }
           }
 
       - name: Test proxy settings transactions

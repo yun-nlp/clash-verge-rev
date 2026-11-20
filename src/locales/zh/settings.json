@@ -410,7 +410,7 @@
         "autoCloseConnections": "当账号分组选中账号或收发模式变动时，关闭已建立的连接",
         "enableBuiltinEnhanced": "配置文件的兼容性处理",
         "autoDelayDetection": "后台定时检测当前账号延迟",
-        "defaultLatencyTest": "仅用于 HTTP 客户端请求测试，不会对配置文件产生影响"
+        "defaultLatencyTest": "用于手动测速及速度优先分组；分组单独设置的测速链接优先"
       },
       "options": {
         "proxyLayoutColumns": {

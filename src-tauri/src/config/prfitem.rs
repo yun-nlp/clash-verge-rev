@@ -49,6 +49,10 @@ pub struct PrfItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group_policies: Option<Vec<super::proxy_chain::GroupPolicy>>,
 
+    /// Per-group URL overrides for automatic latency-based selection.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group_test_urls: Option<std::collections::HashMap<std::string::String, std::string::String>>,
+
     /// subscription user info
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extra: Option<PrfExtra>,
@@ -243,6 +247,7 @@ impl PrfItem {
             selected: None,
             proxy_chains: None,
             group_policies: None,
+            group_test_urls: None,
             extra: None,
             option: Some(PrfOption {
                 update_interval,
@@ -435,6 +440,7 @@ impl PrfItem {
             selected: None,
             proxy_chains: None,
             group_policies: None,
+            group_test_urls: None,
             extra,
             option: Some(PrfOption {
                 update_interval,

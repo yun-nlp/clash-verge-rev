@@ -57,16 +57,23 @@ function headStateReducer(
 export function useHeadStateNew() {
   const { profiles } = useProfiles()
   const current = profiles?.current || ''
+  const storedUrls = JSON.stringify(
+    profiles?.items?.find((item) => item.uid === current)?.group_test_urls ?? {},
+  )
 
   const [state, dispatch] = useReducer(headStateReducer, {})
 
   useEffect(() => {
     try {
       const data = JSON.parse(
-        localStorage.getItem(HEAD_STATE_KEY)!,
+        localStorage.getItem(HEAD_STATE_KEY) || '{}',
       ) as HeadStateStorage
 
       const value = data[current] || {}
+      const overrides = JSON.parse(storedUrls) as Record<string, string>
+      for (const [name, testUrl] of Object.entries(overrides)) {
+        value[name] = { ...DEFAULT_STATE, ...value[name], testUrl }
+      }
 
       if (value && typeof value === 'object') {
         dispatch({ type: 'replace', payload: value })
@@ -76,7 +83,7 @@ export function useHeadStateNew() {
     } catch {
       dispatch({ type: 'reset' })
     }
-  }, [current])
+  }, [current, storedUrls])
 
   useEffect(() => {
     const timer = setTimeout(() => {

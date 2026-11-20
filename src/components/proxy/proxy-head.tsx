@@ -16,8 +16,12 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseSearchBox } from '@/components/base'
+import { useProfiles } from '@/hooks/use-profiles'
 import { useVerge } from '@/hooks/use-verge'
+import { useAppRefreshers } from '@/providers/app-data-context'
 import delayManager from '@/services/delay'
+import { showNotice } from '@/services/notice-service'
+import { updateProxySettings, validateLatencyUrl } from '@/services/proxy-settings'
 import { debugLog } from '@/utils/debug'
 
 import type { ProxySortType } from './use-filter-sort'
@@ -65,13 +69,42 @@ export const ProxyHead = ({
   }, [])
 
   const { verge } = useVerge()
+  const { current, mutateProfiles } = useProfiles()
+  const { refreshProxy } = useAppRefreshers()
+  const savedTestUrl = current?.group_test_urls?.[groupName]
+  const applyTestUrl = async (value: string) => {
+    if (!current) { showNotice.error('请先选择配置'); return }
+    let next: string
+    try { next = validateLatencyUrl(value) } catch (error) {
+      onHeadState({ testUrl: savedTestUrl ?? '' })
+      showNotice.error(error)
+      return
+    }
+    if (next === (savedTestUrl ?? '')) return
+    try {
+      await updateProxySettings(current.uid, (profile) => {
+        const group_test_urls = { ...(profile.group_test_urls ?? {}) }
+        if (next) group_test_urls[groupName] = next
+        else delete group_test_urls[groupName]
+        return { group_test_urls }
+      })
+      await mutateProfiles()
+      await refreshProxy()
+      showNotice.success(next ? '测速链接已应用；速度优先分组将使用该链接' : '已清除分组测速链接')
+    } catch (error) {
+      onHeadState({ testUrl: savedTestUrl ?? '' })
+      await mutateProfiles()
+      await refreshProxy()
+      showNotice.error(error)
+    }
+  }
   const defaultLatencyUrl =
     verge?.default_latency_test?.trim() ||
     'http://cp.cloudflare.com/generate_204'
 
   useEffect(() => {
-    delayManager.setUrl(groupName, testUrl?.trim() || url || defaultLatencyUrl)
-  }, [groupName, testUrl, defaultLatencyUrl, url])
+    delayManager.setUrl(groupName, testUrl?.trim() || verge?.default_latency_test?.trim() || url || defaultLatencyUrl)
+  }, [groupName, testUrl, defaultLatencyUrl, url, verge?.default_latency_test])
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ...sx }}>
@@ -196,6 +229,9 @@ export const ProxyHead = ({
           variant="outlined"
           placeholder={t('proxies.page.placeholders.delayCheckUrl')}
           onChange={(e) => onHeadState({ testUrl: e.target.value })}
+          onBlur={(e) => void applyTestUrl(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+          title="输入后按回车或移开焦点应用；留空使用默认测速链接"
           sx={{ ml: 0.5, flex: '1 1 auto', input: { py: 0.65, px: 1 } }}
         />
       )}

@@ -212,10 +212,11 @@ impl Config {
                 (
                     item.proxy_chains.clone().unwrap_or_default(),
                     item.group_policies.clone().unwrap_or_default(),
+                    item.group_test_urls.clone().unwrap_or_default(),
                 )
             })
         };
-        if let Some((chains, policies)) = profile_settings {
+        if let Some((chains, policies, group_test_urls)) = profile_settings {
             for chain in &chains {
                 super::proxy_chain::install(&mut config, chain)
                     .map_err(|error| anyhow!("Unable to install chain for {}: {}", chain.group, error))?;
@@ -230,6 +231,12 @@ impl Config {
                 )
                 .map_err(|error| anyhow!("Unable to apply group policy for {}: {}", policy.group, error))?;
             }
+            let default_test_url = {
+                let verge = Self::verge().await;
+                let config = verge.latest_arc();
+                config.default_latency_test.as_ref().map(|s| s.to_string())
+            };
+            super::proxy_chain::apply_test_urls(&mut config, default_test_url.as_deref(), &group_test_urls);
         }
 
         Self::runtime().await.edit_draft(|d| {

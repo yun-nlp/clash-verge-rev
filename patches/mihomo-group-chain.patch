@@ -112,3 +112,27 @@ index e97f8da..2bf5bb9 100644
  	case "relay":
  		return nil, fmt.Errorf("%w: The group [%s] with relay type was removed, please using dialer-proxy instead", errType, groupName)
  	default:
+diff --git a/adapter/provider/healthcheck.go b/adapter/provider/healthcheck.go
+index 822a00d..62eff7f 100644
+--- a/adapter/provider/healthcheck.go
++++ b/adapter/provider/healthcheck.go
+@@ -67,7 +67,7 @@ func (hc *HealthCheck) setProxies(proxies []C.Proxy) {
+ 
+ func (hc *HealthCheck) registerHealthCheckTask(url string, expectedStatus utils.IntRanges[uint16], filter string, interval uint) {
+ 	url = strings.TrimSpace(url)
+-	if len(url) == 0 || url == hc.url {
++	if len(url) == 0 {
+ 		log.Debugln("ignore invalid health check url: %s", url)
+ 		return
+ 	}
+@@ -79,6 +79,10 @@ func (hc *HealthCheck) registerHealthCheckTask(url string, expectedStatus utils.
+ 	if hc.interval == 0 {
+ 		hc.interval = time.Duration(interval) * time.Second
+ 	}
++	// A group can activate a disabled provider even when both use the same URL.
++	if url == hc.url {
++		return
++	}
+ 
+ 	if hc.extra == nil {
+ 		hc.extra = make(map[string]*extraOption)

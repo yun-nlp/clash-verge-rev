@@ -13,7 +13,9 @@ import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, DialogRef, Switch, TooltipIcon } from '@/components/base'
 import { useVerge } from '@/hooks/use-verge'
+import { enhanceProfiles, getProfiles } from '@/services/cmds'
 import { showNotice } from '@/services/notice-service'
+import { validateLatencyUrl } from '@/services/proxy-settings'
 
 export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation()
@@ -59,6 +61,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
 
   const onSave = useLockFn(async () => {
     try {
+      const newTestUrl = validateLatencyUrl(values.defaultLatencyTest)
+      const oldTestUrl = verge?.default_latency_test ?? ''
+      const changed = newTestUrl !== oldTestUrl
       await patchVerge({
         app_log_level: values.appLogLevel,
         app_log_max_size: values.appLogMaxSize,
@@ -70,10 +75,20 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         enable_auto_delay_detection: values.enableAutoDelayDetection,
         auto_delay_detection_interval_minutes:
           values.autoDelayDetectionIntervalMinutes,
-        default_latency_test: values.defaultLatencyTest,
+        default_latency_test: newTestUrl,
         default_latency_timeout: values.defaultLatencyTimeout,
         auto_log_clean: values.autoLogClean as any,
       })
+      if (changed) {
+        try {
+          if ((await getProfiles()).current && !(await enhanceProfiles()))
+            throw new Error('测速链接配置加载失败')
+        } catch (error) {
+          await patchVerge({ default_latency_test: oldTestUrl })
+          await enhanceProfiles()
+          throw error
+        }
+      }
       setOpen(false)
     } catch (err) {
       showNotice.error(err)

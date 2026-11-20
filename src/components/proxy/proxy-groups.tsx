@@ -35,7 +35,7 @@ import { useProxiesData } from '@/providers/app-data-context'
 import { calcuProxies } from '@/services/cmds'
 import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'
-import { updateProxySettings } from '@/services/proxy-settings'
+import { updateProxySettings, validateLatencyUrl } from '@/services/proxy-settings'
 import { useQuery } from '@/services/query-client'
 import { debugLog } from '@/utils/debug'
 
@@ -576,6 +576,15 @@ export const ProxyGroups = (props: Props) => {
       showNotice.error('没有可用节点，请调整筛选或重新启用节点')
       return
     }
+    let headTestUrl = ''
+    if (nextMode === 'url-test') {
+      try {
+        headTestUrl = validateLatencyUrl(getGroupHeadState(group.name)?.testUrl ?? '')
+      } catch (error) {
+        showNotice.error(error)
+        return
+      }
+    }
     const policy: IGroupPolicy = {
       group: group.name,
       mode: modeValue,
@@ -586,6 +595,7 @@ export const ProxyGroups = (props: Props) => {
     setPolicyBusy(true)
     try {
       await updateProxySettings(current.uid, (profile) => ({
+        ...(headTestUrl ? { group_test_urls: { ...(profile.group_test_urls ?? {}), [group.name]: headTestUrl } } : {}),
         group_policies: [
           ...(profile.group_policies ?? []).filter(
             (item) => item.group !== group.name,

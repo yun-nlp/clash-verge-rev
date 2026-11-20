@@ -215,6 +215,7 @@ impl IProfiles {
                 patch!(each, item, selected);
                 patch!(each, item, proxy_chains);
                 patch!(each, item, group_policies);
+                patch!(each, item, group_test_urls);
                 patch!(each, item, extra);
                 patch!(each, item, updated);
                 patch!(each, item, option);

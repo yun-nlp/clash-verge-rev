@@ -20,6 +20,7 @@ export function updateProxySettings(
       const previous = {
         proxy_chains: current.proxy_chains ?? [],
         group_policies: current.group_policies ?? [],
+        group_test_urls: current.group_test_urls ?? {},
         selected: current.selected ?? [],
       }
       const updates = change(current)
@@ -73,4 +74,14 @@ export function updateProxySettings(
 
 export function chainName(chain: IProxyChain): string {
   return `链式 ${chain.nodes.map((node) => node.name).join(' ⇒ ')} [${chain.group}]`
+}
+
+export function validateLatencyUrl(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  let parsed: URL
+  try { parsed = new URL(trimmed) } catch { throw new Error('请输入有效的 HTTP 或 HTTPS 测速链接') }
+  if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname)
+    throw new Error('请输入有效的 HTTP 或 HTTPS 测速链接')
+  return trimmed
 }

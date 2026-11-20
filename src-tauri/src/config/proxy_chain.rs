@@ -569,6 +569,39 @@ pub fn apply_group_policy(
     Ok(())
 }
 
+/// Explicit UI URLs override subscription URLs for automatic URL-test groups.
+/// Missing/renamed groups are ignored, so subscription updates cannot break startup.
+pub fn apply_test_urls(
+    config: &mut Mapping,
+    default_url: Option<&str>,
+    overrides: &std::collections::HashMap<String, String>,
+) {
+    let Some(groups) = config.get_mut("proxy-groups").and_then(Value::as_sequence_mut) else {
+        return;
+    };
+    for group in groups.iter_mut().filter_map(Value::as_mapping_mut) {
+        if group.get("type").and_then(Value::as_str) != Some("url-test") {
+            continue;
+        }
+        let Some(name) = group.get("name").and_then(Value::as_str) else {
+            continue;
+        };
+        let url = overrides
+            .get(name)
+            .map(String::as_str)
+            .filter(|s| !s.trim().is_empty())
+            .or_else(|| default_url.filter(|s| !s.trim().is_empty()));
+        if let Some(url) = url {
+            group.insert(str_key("url"), value_str(url.trim()));
+            // The core's provider-backed groups need a nonzero interval to
+            // start their health-check scheduler (static groups default to 300s).
+            if group.get("interval").and_then(Value::as_i64).unwrap_or(0) == 0 {
+                group.insert(str_key("interval"), 300.into());
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -627,6 +660,26 @@ mod tests {
         )
         .is_err());
         assert_eq!(cfg, before);
+    }
+    #[test]
+    fn user_test_urls_override_config_only_for_urltest_groups() {
+        let mut cfg: Mapping = serde_yaml_ng::from_str("proxy-groups: [{name: A, type: url-test, url: 'https://original.test'}, {name: B, type: url-test, url: 'https://original.test'}, {name: C, type: select, url: 'https://original.test'}, {name: D, type: fallback}]").unwrap();
+        let urls = [
+            ("A".to_string(), "https://group.test".to_string()),
+            ("C".to_string(), "https://ignored.test".to_string()),
+        ]
+        .into_iter()
+        .collect();
+        apply_test_urls(&mut cfg, Some("https://global.test"), &urls);
+        assert_eq!(cfg["proxy-groups"][0]["url"], "https://group.test");
+        assert_eq!(cfg["proxy-groups"][1]["url"], "https://global.test");
+        assert_eq!(cfg["proxy-groups"][0]["interval"].as_i64(), Some(300));
+        assert_eq!(cfg["proxy-groups"][2]["url"], "https://original.test");
+        assert!(cfg["proxy-groups"][3].get("url").is_none());
+        let mut original: Mapping =
+            serde_yaml_ng::from_str("proxy-groups: [{name: A, type: url-test, url: 'https://original.test'}]").unwrap();
+        apply_test_urls(&mut original, None, &Default::default());
+        assert_eq!(original["proxy-groups"][0]["url"], "https://original.test");
     }
     #[test]
     fn static_chain_isolated() {

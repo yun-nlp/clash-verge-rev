@@ -18,6 +18,7 @@ async function testCase(opts = {}) {
     selected: [{ name: 'Supply', now: 'A' }],
     proxy_chains: [],
     group_policies: [],
+    group_test_urls: { Supply: 'https://old.example/test' },
   }
   let calls = [],
     reload = 0,
@@ -54,6 +55,7 @@ async function testCase(opts = {}) {
     exports,
     require: (m) => (m === './cmds' ? commands : plugin),
     Promise,
+    URL,
     Error,
     console,
   }
@@ -63,6 +65,7 @@ async function testCase(opts = {}) {
     get: () => clone(profile),
     calls,
     getReload: () => reload,
+    validate: exports.validateLatencyUrl,
   }
 }
 ;(async () => {
@@ -137,6 +140,14 @@ async function testCase(opts = {}) {
     x.get().proxy_chains.map((x) => x.group),
     ['A', 'B'],
   )
+  x = await testCase({ invalid: true })
+  await assert.rejects(x.run('p', () => ({ group_test_urls: { Supply: 'https://new.example/test' } })), /校验/)
+  assert.deepEqual(x.get().group_test_urls, { Supply: 'https://old.example/test' })
+  x = await testCase()
+  assert.equal(x.validate(' https://example.com/test '), 'https://example.com/test')
+  assert.equal(x.validate('  '), '')
+  assert.throws(() => x.validate('ftp://example.com'), /HTTP/)
+  assert.throws(() => x.validate('not a url'), /HTTP/)
   x = await testCase({ switched: true })
   await assert.rejects(
     x.run('p', () => ({ proxy_chains: [] })),
@@ -144,7 +155,7 @@ async function testCase(opts = {}) {
   )
   assert.equal(x.calls.length, 0)
   console.log(
-    'PASS: success, validation rollback, selection rollback, serialized edits, profile switch',
+    'PASS: success, validation rollback, selection rollback, serialized edits, URL validation and rollback, profile switch',
   )
 })().catch((e) => {
   console.error(e)

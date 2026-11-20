@@ -296,6 +296,7 @@ interface IProfileItem {
   updated?: number
   proxy_chains?: IProxyChain[]
   group_policies?: IGroupPolicy[]
+  group_test_urls?: Record<string, string>
   selected?: {
     name?: string
     now?: string
